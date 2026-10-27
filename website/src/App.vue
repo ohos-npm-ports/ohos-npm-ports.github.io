@@ -1,6 +1,6 @@
 <script setup vapor>
 import { computed, nextTick, onMounted, onUnmounted, ref, watch } from "vue";
-import { fetchPackage, refreshCatalog } from "./registry.mjs";
+import { discoverPackages, fetchPackage, refreshCatalog } from "./registry.mjs";
 const favicon = computed(
   () => `${import.meta.env.BASE_URL}favicon${theme.value === "dark" ? "-dark" : ""}.svg`,
 );
@@ -13,12 +13,22 @@ async function refresh() {
   if (refreshing.value) return;
   refreshing.value = true;
   liveMessage.value = "正在查询 npm registry…";
-  const result = await refreshCatalog([...packages.value], (index, pkg) => {
-    packages.value[index] = pkg;
-  });
-  liveMessage.value = result.failed
-    ? `${result.failed} 个包实时查询失败，保留原有数据；其余已更新。`
-    : `全部包已实时查询 · ${new Date().toLocaleString("zh-CN", { hour12: false })}`;
+  const [result, found] = await Promise.all([
+    refreshCatalog([...packages.value], (index, pkg) => {
+      packages.value[index] = pkg;
+    }),
+    discoverPackages(packages.value),
+  ]);
+  packages.value.push(...found.packages);
+  const notes = [];
+  if (found.packages.length) notes.push(`发现 ${found.packages.length} 个未进快照的新包`);
+  if (found.failed) notes.push("新包发现未完整完成");
+  if (found.truncated) notes.push("搜索结果已截断");
+  liveMessage.value =
+    (result.failed
+      ? `${result.failed} 个包实时查询失败，保留原有数据；其余已更新。`
+      : `全部包已实时查询 · ${new Date().toLocaleString("zh-CN", { hour12: false })}`) +
+    (notes.length ? ` · ${notes.join("；")}` : "");
   refreshing.value = false;
 }
 const loading = ref(true);
@@ -370,6 +380,7 @@ function installText(pkg, mode = "npm", version = pkg.version) {
                     </button>
                     <p class="package-description">{{ pkg.description }}</p>
                     <p class="upstream">{{ pkg.upstream ? `↳ ${pkg.upstream}` : pkg.name }}</p>
+                    <p v-if="pkg.discovered" class="discovered-badge">新发现（未进快照）</p>
                     <p class="upstream">
                       {{
                         pkg.checkedAt

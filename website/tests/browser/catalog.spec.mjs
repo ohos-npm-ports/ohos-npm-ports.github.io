@@ -344,3 +344,41 @@ test("direct links default to the live latest when the user has not selected a v
   await expect(page.locator("#detail")).toContainText("npm 实时查询");
   await expect(page.locator("#version")).toHaveValue("3.0.0-1");
 });
+
+test("packages newer than the snapshot are discovered live and marked", async ({ page }) => {
+  await page.route("https://registry.npmjs.org/-/v1/search**", (route) =>
+    route.fulfill({
+      json: {
+        total: 4,
+        objects: [
+          { package: { name: "@ohos-npm-ports/tool-00", version: "2.0.0-1" } },
+          { package: { name: "@ohos-npm-ports/brand-new", version: "1.0.0-1" } },
+          { package: { name: "@ohos-npm-ports/staged", version: "0.0.0-stage" } },
+          { package: { name: "ohos-signpost", version: "1.1.2" } },
+        ],
+      },
+    }),
+  );
+  await page.route("https://registry.npmjs.org/**brand-new", (route) =>
+    route.fulfill({
+      json: {
+        name: "@ohos-npm-ports/brand-new",
+        description: "Published after the snapshot",
+        "dist-tags": { latest: "1.0.0-1" },
+        versions: { "1.0.0-1": {} },
+      },
+    }),
+  );
+  await page.route("**/data.json", (route) =>
+    route.fulfill({ json: { generatedAt: "2026-01-01T00:00:00Z", packages: fixtures } }),
+  );
+  await page.goto("./");
+  await expect(page.locator(".package-row")).toHaveCount(15);
+  await expect(page.locator(".discovered-badge")).toHaveCount(1);
+  await expect(page.locator(".discovered-badge")).toHaveText("新发现（未进快照）");
+  const row = page.locator(".package-row", { hasText: "brand-new" });
+  await expect(row.locator(".discovered-badge")).toBeVisible();
+  await expect(page.locator(".live-status p")).toContainText("发现 1 个未进快照的新包");
+  await expect(page.getByText("staged")).toHaveCount(0);
+  await expect(page.locator("#total-count")).toHaveText("15");
+});
