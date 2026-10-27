@@ -1,0 +1,77 @@
+name: Website
+on:
+  pull_request:
+    paths: ["website/**", ".github/workflows/website.yml"]
+  push:
+    branches: [main]
+    paths: ["website/**", ".github/workflows/website.yml"]
+  schedule:
+    - cron: "23 3 * * *"
+  workflow_dispatch:
+permissions:
+  contents: read
+concurrency:
+  group: website-${{ github.event.pull_request.number || github.ref }}
+  cancel-in-progress: ${{ github.event_name == 'pull_request' }}
+jobs:
+  build:
+    runs-on: ubuntu-latest
+    defaults:
+      run:
+        working-directory: website
+    timeout-minutes: 15
+    steps:
+      - uses: actions/checkout@v5
+      - uses: actions/checkout@v5
+        with:
+          repository: ohos-npm-ports/ohos-npm-ports
+          path: .sources
+          sparse-checkout: ports
+      - uses: actions/setup-node@v5
+        with:
+          node-version: "24"
+      - uses: pnpm/action-setup@v4
+        with:
+          version: "12.15.0"
+      - run: pnpm install --frozen-lockfile
+      - run: pnpm run check
+      - run: pnpm test
+      - run: pnpm run sync-data
+      - name: Build domain-root variant
+        run: pnpm run build
+        env:
+          PAGES_BASE_PATH: /
+      - run: pnpm exec playwright install --with-deps --only-shell chromium
+      - name: Test domain-root variant
+        run: pnpm run test:e2e
+        env:
+          PAGES_BASE_PATH: /
+      - name: Build repository Pages variant
+        run: pnpm run build
+      - name: Test repository Pages variant
+        run: pnpm run test:e2e
+      - uses: actions/upload-artifact@v7
+        if: always()
+        with:
+          name: website-browser-results
+          path: |
+            website/playwright-report/
+            website/test-results/
+          retention-days: 7
+      - uses: actions/upload-pages-artifact@v4
+        with:
+          path: website/dist
+  deploy:
+    if: github.event_name != 'pull_request' && github.ref == 'refs/heads/main'
+    needs: build
+    runs-on: ubuntu-latest
+    permissions:
+      pages: write
+      id-token: write
+    environment:
+      name: github-pages
+      url: ${{ steps.deployment.outputs.page_url }}
+    steps:
+      - uses: actions/configure-pages@v5
+      - uses: actions/deploy-pages@v4
+        id: deployment
