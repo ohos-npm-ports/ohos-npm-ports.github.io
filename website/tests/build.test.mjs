@@ -34,6 +34,7 @@ test("data sync emits only confirmed published metadata", async () => {
     await syncData({
       output,
       portsRoot: new URL("../fixtures/ports", import.meta.url).pathname,
+      fetchOrg: async () => [],
       fetchMetadata: async (name) =>
         name.endsWith("/bufferutil")
           ? {
@@ -55,10 +56,63 @@ test("registry failures stop deployment rather than silently dropping packages",
   await assert.rejects(
     syncData({
       portsRoot: new URL("../fixtures/ports", import.meta.url).pathname,
+      fetchOrg: async () => [],
       fetchMetadata: async () => {
         throw new Error("registry unavailable");
       },
     }),
     /registry unavailable/,
   );
+});
+
+const published = (name, maintainers) => ({
+  name,
+  maintainers: maintainers.map((n) => ({ name: n })),
+  "dist-tags": { latest: "1.0.0-1" },
+  versions: { "1.0.0-1": {} },
+});
+test("org listing adds packages outside ports/ and records the maintainers", async () => {
+  const output = await mkdtemp(join(tmpdir(), "catalog-build-"));
+  try {
+    await syncData({
+      output,
+      portsRoot: new URL("../fixtures/ports", import.meta.url).pathname,
+      fetchOrg: async () => [
+        "@ohos-npm-ports/bufferutil",
+        "@ohos-npm-ports/pnpm-openharmony-arm64",
+      ],
+      fetchMetadata: async (name) =>
+        published(name, name.endsWith("/bufferutil") ? ["zed", "hqzing"] : ["hqzing", "amy"]),
+    });
+    const data = JSON.parse(await readFile(join(output, "data.json"), "utf8"));
+    assert.deepEqual(
+      data.packages.map((p) => p.name),
+      ["@ohos-npm-ports/bufferutil", "@ohos-npm-ports/pnpm-openharmony-arm64"],
+    );
+    const extra = data.packages[1];
+    assert.equal(extra.upstream, null);
+    assert.deepEqual(extra.directories, []);
+    assert.deepEqual(data.maintainers, ["amy", "hqzing", "zed"]);
+  } finally {
+    await rm(output, { recursive: true, force: true });
+  }
+});
+test("org listing failure falls back to ports/ and does not fail the build", async () => {
+  const output = await mkdtemp(join(tmpdir(), "catalog-build-"));
+  try {
+    await syncData({
+      output,
+      portsRoot: new URL("../fixtures/ports", import.meta.url).pathname,
+      fetchOrg: async () => {
+        throw new Error("org unavailable");
+      },
+      fetchMetadata: async (name) =>
+        name.endsWith("/bufferutil") ? published(name, ["hqzing"]) : null,
+    });
+    const data = JSON.parse(await readFile(join(output, "data.json"), "utf8"));
+    assert.equal(data.packages.length, 1);
+    assert.deepEqual(data.maintainers, ["hqzing"]);
+  } finally {
+    await rm(output, { recursive: true, force: true });
+  }
 });

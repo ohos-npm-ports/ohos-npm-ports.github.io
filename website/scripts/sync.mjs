@@ -57,6 +57,14 @@ export async function discoverSources(portsRoot) {
   return sources;
 }
 
+export async function listOrgPackages({ fetcher = fetch } = {}) {
+  const response = await fetcher(`https://registry.npmjs.org/-/org/${scope.slice(1, -1)}/package`, {
+    signal: AbortSignal.timeout(45000),
+  });
+  if (!response.ok) throw new Error(`org listing returned ${response.status}`);
+  return Object.keys(await response.json()).filter((name) => name.startsWith(scope));
+}
+
 export async function syncData({
   fetchMetadata = async (name) => {
     const url = `https://registry.npmjs.org/${encodeURIComponent(name)}`;
@@ -74,10 +82,19 @@ export async function syncData({
       }
     }
   },
+  fetchOrg = listOrgPackages,
   output = join(root, "public"),
   portsRoot = process.env.PORTS_ROOT ?? join(repository, ".sources/ports"),
 } = {}) {
   const sources = await discoverSources(portsRoot);
+  try {
+    for (const name of await fetchOrg()) {
+      if (!sources.has(name)) sources.set(name, { directories: [], upstream: null });
+    }
+  } catch (error) {
+    console.warn(`Org listing unavailable, using ports/ only: ${error.message}`);
+  }
+  const maintainers = new Set();
   const entries = [...sources];
   const packages = [];
   const unpublished = [];
@@ -92,6 +109,7 @@ export async function syncData({
           continue;
         }
         if (metadata.name !== name) throw new Error(`Registry name mismatch: ${name}`);
+        for (const { name: maintainer } of metadata.maintainers ?? []) maintainers.add(maintainer);
         packages.push(normalizePackage(metadata, source));
       }
     }),
@@ -103,6 +121,7 @@ export async function syncData({
     JSON.stringify({
       generatedAt: new Date().toISOString(),
       repository: "https://github.com/ohos-npm-ports/ohos-npm-ports",
+      maintainers: [...maintainers].sort(),
       packages: packages.sort((a, b) => a.name.localeCompare(b.name)),
     }),
   );
