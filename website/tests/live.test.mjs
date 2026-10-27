@@ -1,6 +1,6 @@
 import assert from "node:assert/strict";
 import { test } from "vite-plus/test";
-import { fetchPackage, refreshCatalog } from "../src/registry.mjs";
+import { discoverPackages, fetchPackage, refreshCatalog } from "../src/registry.mjs";
 const pkg = {
   name: "@ohos-npm-ports/example",
   upstream: "example",
@@ -85,4 +85,87 @@ test("compact responses preserve repository descriptions and do not retain stale
   assert.equal(current.license, "MIT");
   assert.equal(current.deprecated, null);
   assert.equal(current.status, "active");
+});
+
+const search = (objects, total = objects.length) => ({
+  ok: true,
+  json: async () => ({
+    total,
+    objects: objects.map(([name, version]) => ({ package: { name, version } })),
+  }),
+});
+const packument = (name, latest) => ({
+  ok: true,
+  json: async () => ({
+    name,
+    description: "Fresh port",
+    "dist-tags": latest ? { latest } : {},
+    versions: latest ? { [latest]: {} } : { "0.0.0-stage": {} },
+  }),
+});
+
+test("discovery keeps only new scoped packages with a real latest and marks them", async () => {
+  const urls = [];
+  const result = await discoverPackages([pkg], {
+    fetcher: async (url, options) => {
+      urls.push(url);
+      if (new URL(url).pathname === "/-/v1/search") {
+        assert.equal(new URL(url).searchParams.get("text"), "maintainer:hqzing");
+        assert.equal(options.cache, "no-store");
+        return search([
+          [pkg.name, "1"],
+          ["@ohos-npm-ports/fresh", "1.0.0-1"],
+          ["@ohos-npm-ports/staged", "0.0.0-stage"],
+          ["@ohos-npm-ports/untagged", "3.0.0-1"],
+          ["ohos-signpost", "1.1.2"],
+          ["@other/tool", "1.0.0"],
+        ]);
+      }
+      if (url.endsWith("fresh")) return packument("@ohos-npm-ports/fresh", "1.0.0-1");
+      if (url.endsWith("untagged")) return packument("@ohos-npm-ports/untagged", null);
+      throw Error(`unexpected ${url}`);
+    },
+  });
+  assert.deepEqual(
+    result.packages.map((p) => [p.name, p.version, p.discovered, p.status]),
+    [["@ohos-npm-ports/fresh", "1.0.0-1", true, "active"]],
+  );
+  assert.equal(result.failed, 0);
+  assert.equal(result.truncated, false);
+  assert.equal(
+    urls.some((u) => u.includes("staged") || u.includes("signpost")),
+    false,
+  );
+  assert.equal(
+    urls.some((u) => u.endsWith(encodeURIComponent(pkg.name))),
+    false,
+  );
+});
+
+test("discovery failures never throw and report truncation", async () => {
+  const offline = await discoverPackages([], {
+    fetcher: async () => {
+      throw Error("offline");
+    },
+  });
+  assert.deepEqual(offline, { packages: [], failed: 1, truncated: false });
+  const limited = await discoverPackages([], {
+    fetcher: async () => search([["@ohos-npm-ports/a", "0.0.0-stage"]], 300),
+  });
+  assert.equal(limited.truncated, true);
+  const blocked = await discoverPackages([], { fetcher: async () => ({ ok: false, status: 429 }) });
+  assert.equal(blocked.failed, 1);
+});
+
+test("a discovered package stays marked after a later live refresh", async () => {
+  const current = await fetchPackage(
+    { name: "@ohos-npm-ports/fresh", discovered: true },
+    { fetcher: async () => packument("@ohos-npm-ports/fresh", "2.0.0-1") },
+  );
+  assert.equal(current.discovered, true);
+  assert.equal(current.version, "2.0.0-1");
+  const snapshot = await fetchPackage(pkg, {
+    fetcher: async () => packument(pkg.name, "2"),
+  });
+  assert.equal("discovered" in snapshot, false);
 });

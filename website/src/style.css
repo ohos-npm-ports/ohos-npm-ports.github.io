@@ -639,6 +639,15 @@ body[data-theme="dark"] .terminal {
 .status-badge.deprecated .dot {
   background: #c18357;
 }
+.discovered-badge {
+  display: inline-block;
+  margin-top: 6px;
+  padding: 0 8px;
+  border: 1px solid var(--line);
+  border-radius: 999px;
+  font: 12px/1.7 sans-serif;
+  color: #b36c49;
+}
 .status-badge.untagged {
   color: var(--muted);
 }
