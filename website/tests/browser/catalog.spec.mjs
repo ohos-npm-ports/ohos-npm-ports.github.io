@@ -346,8 +346,10 @@ test("direct links default to the live latest when the user has not selected a v
 });
 
 test("packages newer than the snapshot are discovered live and marked", async ({ page }) => {
-  await page.route("https://registry.npmjs.org/-/v1/search**", (route) =>
-    route.fulfill({
+  const searches = [];
+  await page.route("https://registry.npmjs.org/-/v1/search**", (route) => {
+    searches.push(new URL(route.request().url()).searchParams.get("text"));
+    return route.fulfill({
       json: {
         total: 4,
         objects: [
@@ -357,8 +359,8 @@ test("packages newer than the snapshot are discovered live and marked", async ({
           { package: { name: "ohos-signpost", version: "1.1.2" } },
         ],
       },
-    }),
-  );
+    });
+  });
   await page.route("https://registry.npmjs.org/**brand-new", (route) =>
     route.fulfill({
       json: {
@@ -370,10 +372,13 @@ test("packages newer than the snapshot are discovered live and marked", async ({
     }),
   );
   await page.route("**/data.json", (route) =>
-    route.fulfill({ json: { generatedAt: "2026-01-01T00:00:00Z", packages: fixtures } }),
+    route.fulfill({
+      json: { generatedAt: "2026-01-01T00:00:00Z", maintainers: ["someone"], packages: fixtures },
+    }),
   );
   await page.goto("./");
   await expect(page.locator(".package-row")).toHaveCount(15);
+  expect(searches).toEqual(["maintainer:someone"]);
   await expect(page.locator(".discovered-badge")).toHaveCount(1);
   await expect(page.locator(".discovered-badge")).toHaveText("新发现（未进快照）");
   const row = page.locator(".package-row", { hasText: "brand-new" });

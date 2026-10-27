@@ -1,6 +1,12 @@
 import assert from "node:assert/strict";
 import { test } from "vite-plus/test";
-import { discoverPackages, fetchPackage, refreshCatalog } from "../src/registry.mjs";
+import {
+  catalogMaintainers,
+  discoverPackages,
+  fallbackMaintainers,
+  fetchPackage,
+  refreshCatalog,
+} from "../src/registry.mjs";
 const pkg = {
   name: "@ohos-npm-ports/example",
   upstream: "example",
@@ -168,4 +174,46 @@ test("a discovered package stays marked after a later live refresh", async () =>
     fetcher: async () => packument(pkg.name, "2"),
   });
   assert.equal("discovered" in snapshot, false);
+});
+
+test("discovery searches every maintainer given and deduplicates their packages", async () => {
+  const searched = [];
+  const hit = (name) => ({ package: { name, version: "1.0.0-1" } });
+  const found = await discoverPackages([], {
+    maintainers: ["amy", "zed"],
+    fetcher: async (url) => {
+      const text = decodeURIComponent(new URL(url).searchParams.get("text") ?? "");
+      if (text.startsWith("maintainer:")) {
+        searched.push(text);
+        return {
+          ok: true,
+          json: async () => ({
+            total: 2,
+            objects: [hit("@ohos-npm-ports/shared"), hit(`@ohos-npm-ports/${text.slice(11)}-only`)],
+          }),
+        };
+      }
+      const name = decodeURIComponent(new URL(url).pathname.slice(1));
+      return {
+        ok: true,
+        json: async () => ({
+          name,
+          "dist-tags": { latest: "1.0.0-1" },
+          versions: { "1.0.0-1": {} },
+        }),
+      };
+    },
+  });
+  assert.deepEqual(searched.sort(), ["maintainer:amy", "maintainer:zed"]);
+  assert.deepEqual(found.packages.map((p) => p.name).sort(), [
+    "@ohos-npm-ports/amy-only",
+    "@ohos-npm-ports/shared",
+    "@ohos-npm-ports/zed-only",
+  ]);
+});
+test("the built-in maintainer list only applies when the snapshot has none", () => {
+  assert.deepEqual(fallbackMaintainers, ["hqzing"]);
+  assert.deepEqual(catalogMaintainers({ maintainers: ["amy"] }), ["amy"]);
+  assert.deepEqual(catalogMaintainers({}), ["hqzing"]);
+  assert.deepEqual(catalogMaintainers({ maintainers: [] }), ["hqzing"]);
 });

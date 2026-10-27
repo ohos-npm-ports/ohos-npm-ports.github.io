@@ -17,11 +17,17 @@ export async function fetchPackage(source, { full = false, fetcher = fetch } = {
 }
 
 const scope = "@ohos-npm-ports/";
-export const maintainers = ["hqzing"];
+export const fallbackMaintainers = ["hqzing"];
+
+export function catalogMaintainers(data) {
+  return Array.isArray(data.maintainers) && data.maintainers.length
+    ? data.maintainers
+    : fallbackMaintainers;
+}
 
 export async function discoverPackages(
   known,
-  { fetcher = fetch, maintainers: names = maintainers } = {},
+  { fetcher = fetch, maintainers: names = fallbackMaintainers } = {},
 ) {
   const knownNames = new Set(known.map((p) => p.name));
   const candidates = new Set();

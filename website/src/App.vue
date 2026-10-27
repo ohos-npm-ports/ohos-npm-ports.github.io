@@ -1,6 +1,6 @@
 <script setup vapor>
 import { computed, nextTick, onMounted, onUnmounted, ref, watch } from "vue";
-import { discoverPackages, fetchPackage, refreshCatalog } from "./registry.mjs";
+import { catalogMaintainers, discoverPackages, fetchPackage, refreshCatalog } from "./registry.mjs";
 const favicon = computed(
   () => `${import.meta.env.BASE_URL}favicon${theme.value === "dark" ? "-dark" : ""}.svg`,
 );
@@ -17,7 +17,7 @@ async function refresh() {
     refreshCatalog([...packages.value], (index, pkg) => {
       packages.value[index] = pkg;
     }),
-    discoverPackages(packages.value),
+    discoverPackages(packages.value, { maintainers: maintainers.value }),
   ]);
   packages.value.push(...found.packages);
   const notes = [];
@@ -35,6 +35,7 @@ const loading = ref(true);
 const error = ref(false);
 const ready = ref(false);
 const generatedAt = ref("");
+const maintainers = ref(catalogMaintainers({}));
 const selected = ref(null);
 const toast = ref("");
 let timer;
@@ -80,6 +81,7 @@ async function load() {
     if (!Array.isArray(data.packages)) throw new Error("Invalid catalog");
     packages.value = data.packages;
     generatedAt.value = data.generatedAt;
+    maintainers.value = catalogMaintainers(data);
     ready.value = true;
     loading.value = false;
     void refresh();

@@ -7,6 +7,9 @@ on:
     paths: ["website/**", ".github/workflows/website.yml"]
   schedule:
     - cron: "23 3 * * *"
+    - cron: "*/30 * * * *"
+  repository_dispatch:
+    types: [ports-published]
   workflow_dispatch:
 permissions:
   contents: read
@@ -14,7 +17,22 @@ concurrency:
   group: website-${{ github.event.pull_request.number || github.ref }}
   cancel-in-progress: ${{ github.event_name == 'pull_request' }}
 jobs:
+  freshness:
+    if: github.event_name == 'schedule' && github.event.schedule == '*/30 * * * *'
+    runs-on: ubuntu-latest
+    timeout-minutes: 5
+    outputs:
+      stale: ${{ steps.check.outputs.stale }}
+    steps:
+      - uses: actions/checkout@v5
+      - uses: actions/setup-node@v5
+        with:
+          node-version: "24"
+      - id: check
+        run: node website/scripts/freshness.mjs
   build:
+    needs: freshness
+    if: ${{ !cancelled() && (needs.freshness.result == 'skipped' || needs.freshness.outputs.stale == 'true') }}
     runs-on: ubuntu-latest
     defaults:
       run:
