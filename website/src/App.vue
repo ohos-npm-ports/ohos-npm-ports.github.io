@@ -1,53 +1,111 @@
 <script setup vapor>
 import { computed, nextTick, onMounted, onUnmounted, ref, watch } from "vue";
-import { catalogMaintainers, discoverPackages, fetchPackage, refreshCatalog } from "./registry.mjs";
+import {
+  catalogMaintainers,
+  discoverPackages,
+  createRegistryClient,
+  refreshCatalog,
+} from "./registry.mjs";
+import {
+  enrichPackage,
+  installGuide,
+  installModes,
+  managerGroups,
+  searchPackages,
+  readRoute,
+  routeUrl,
+  statusLabels,
+} from "./catalog.mjs";
+const registry = createRegistryClient();
+const base = new URL(import.meta.env.BASE_URL, location.origin).href;
+const initial = readRoute(location.href);
+const packages = ref([]),
+  refreshing = ref(false),
+  liveMessage = ref(""),
+  detailMessage = ref("");
+const loading = ref(true),
+  error = ref(false),
+  ready = ref(false),
+  generatedAt = ref("");
+const maintainers = ref(catalogMaintainers({})),
+  selected = ref(null),
+  toast = ref(""),
+  dialog = ref(null);
+const query = ref(initial.query),
+  status = ref(initial.status);
+const version = ref(initial.version),
+  manager = ref(initial.manager),
+  mode = ref(initial.mode);
+const menuOpen = ref(false);
+let ignoredCloseEvents = 0;
+let detailRequest = 0,
+  timer,
+  versionChanged = false,
+  routing = false;
+const labels = statusLabels;
+const activeCount = computed(() => packages.value.filter((p) => p.status === "active").length);
+const versionsCount = computed(() => packages.value.reduce((sum, p) => sum + p.versions.length, 0));
+const filtered = computed(() =>
+  searchPackages(packages.value, {
+    query: query.value,
+    status: status.value,
+  }),
+);
+const guide = computed(() =>
+  selected.value
+    ? installGuide(selected.value, {
+        manager: manager.value,
+        mode: mode.value,
+        version: version.value,
+      })
+    : {},
+);
+const groups = computed(() => managerGroups(mode.value));
+const activeManager = computed(
+  () => groups.value.find((group) => group.members.includes(manager.value))?.key,
+);
+function moveTab(event, keys, active, prefix) {
+  let index = keys.indexOf(active);
+  if (event.key === "ArrowRight") index = (index + 1) % keys.length;
+  else if (event.key === "ArrowLeft") index = (index + keys.length - 1) % keys.length;
+  else if (event.key === "Home") index = 0;
+  else if (event.key === "End") index = keys.length - 1;
+  else return;
+  event.preventDefault();
+  if (prefix === "mode-tab-") mode.value = keys[index];
+  else manager.value = keys[index];
+  void nextTick(() => document.getElementById(prefix + keys[index])?.focus());
+}
+function modeKeydown(event) {
+  moveTab(event, Object.keys(installModes), mode.value, "mode-tab-");
+}
+function managerKeydown(event) {
+  moveTab(
+    event,
+    groups.value.map((group) => group.key),
+    activeManager.value,
+    "manager-tab-",
+  );
+}
+const code = computed(() => guide.value.code);
+const deprecated = computed(
+  () => selected.value?.versions.find((v) => v.version === version.value)?.deprecated,
+);
+const notes = computed(() =>
+  (selected.value?.notes || []).filter((n) => !n.version || n.version === version.value),
+);
+const theme = ref(initialTheme());
 const favicon = computed(
   () => `${import.meta.env.BASE_URL}favicon${theme.value === "dark" ? "-dark" : ""}.svg`,
 );
-const packages = ref([]);
-const refreshing = ref(false);
-const liveMessage = ref("");
-const detailMessage = ref("");
-let detailRequest = 0;
-async function refresh() {
-  if (refreshing.value) return;
-  refreshing.value = true;
-  liveMessage.value = "正在查询 npm registry…";
-  const [result, found] = await Promise.all([
-    refreshCatalog([...packages.value], (index, pkg) => {
-      packages.value[index] = pkg;
-    }),
-    discoverPackages(packages.value, { maintainers: maintainers.value }),
-  ]);
-  packages.value.push(...found.packages);
-  const notes = [];
-  if (found.packages.length) notes.push(`发现 ${found.packages.length} 个未进快照的新包`);
-  if (found.failed) notes.push("新包发现未完整完成");
-  if (found.truncated) notes.push("搜索结果已截断");
-  liveMessage.value =
-    (result.failed
-      ? `${result.failed} 个包实时查询失败，保留原有数据；其余已更新。`
-      : `全部包已实时查询 · ${new Date().toLocaleString("zh-CN", { hour12: false })}`) +
-    (notes.length ? ` · ${notes.join("；")}` : "");
-  refreshing.value = false;
-}
-const loading = ref(true);
-const error = ref(false);
-const ready = ref(false);
-const generatedAt = ref("");
-const maintainers = ref(catalogMaintainers({}));
-const selected = ref(null);
-const toast = ref("");
-let timer;
-const activeCount = computed(() => packages.value.filter((p) => p.status === "active").length);
-const versionsCount = computed(() => packages.value.reduce((sum, p) => sum + p.versions.length, 0));
-const theme = ref(initialTheme());
 function initialTheme() {
   try {
-    return (
-      localStorage.getItem("theme") ||
-      (matchMedia("(prefers-color-scheme: dark)").matches ? "dark" : "light")
-    );
+    const saved = localStorage.getItem("theme");
+    return ["light", "dark"].includes(saved)
+      ? saved
+      : matchMedia("(prefers-color-scheme: dark)").matches
+        ? "dark"
+        : "light";
   } catch {
     return "light";
   }
@@ -60,7 +118,7 @@ watch(
     try {
       localStorage.setItem("theme", value);
     } catch {
-      /* Theme remains usable without storage. */
+      /* optional storage */
     }
   },
   { immediate: true },
@@ -68,28 +126,116 @@ watch(
 function toggleTheme() {
   theme.value = theme.value === "dark" ? "light" : "dark";
 }
+function routeState(pkg = selected.value) {
+  return {
+    query: query.value,
+    status: status.value,
+    package: pkg?.name || "",
+    version: pkg ? version.value : "",
+    manager: manager.value,
+    mode: mode.value,
+  };
+}
+function syncUrl() {
+  if (ready.value && !routing)
+    history.replaceState(history.state, "", routeUrl(routeState(), base));
+}
+watch([query, status, version, manager, mode], syncUrl);
+function packageUrl(pkg) {
+  return routeUrl({ ...routeState(pkg), version: version.value }, base).href;
+}
+function staticUrl(pkg) {
+  return `${base}packages/${encodeURIComponent(pkg.shortName)}/`;
+}
+function scrollToCatalog() {
+  document.getElementById("catalog").scrollIntoView();
+}
+function clear() {
+  query.value = "";
+  status.value = "all";
+}
+async function refresh(force = false) {
+  if (refreshing.value) return;
+  if (force) for (const pkg of packages.value) registry.invalidate(pkg.name);
+  refreshing.value = true;
+  liveMessage.value = "正在查询 npm registry…";
+  const visible = [...document.querySelectorAll(".package-row")]
+    .filter((el) => {
+      const r = el.getBoundingClientRect();
+      return r.top < innerHeight && r.bottom > 0;
+    })
+    .map((el) => el.dataset.name);
+  try {
+    const [result, found] = await Promise.all([
+      refreshCatalog(
+        [...packages.value],
+        (index, pkg) => {
+          packages.value[index] = enrichPackage(pkg);
+        },
+        {
+          query: registry.fetchPackage,
+          force,
+          priority: [selected.value?.name, ...visible],
+          progress: (done, total) => {
+            liveMessage.value = `正在查询 npm registry… ${done} / ${total}`;
+          },
+        },
+      ),
+      discoverPackages(packages.value, {
+        maintainers: maintainers.value,
+        query: registry.fetchPackage,
+        force,
+      }),
+    ]);
+    const known = new Set(packages.value.map((p) => p.name));
+    packages.value.push(...found.packages.filter((p) => !known.has(p.name)).map(enrichPackage));
+    const messages = [];
+    if (found.packages.length) messages.push(`发现 ${found.packages.length} 个未进快照的新包`);
+    if (found.failed) messages.push("新包发现未完整完成");
+    if (found.truncated) messages.push("搜索结果已截断");
+    liveMessage.value =
+      (result.failed
+        ? `${result.failed} 个包实时查询失败，保留原有数据；其余已更新。`
+        : "全部包已实时查询（五分钟内复用缓存）") +
+      (messages.length ? ` · ${messages.join("；")}` : "");
+  } catch {
+    liveMessage.value = "查询失败，保留已有目录，可稍后重试。";
+  } finally {
+    refreshing.value = false;
+  }
+}
 async function load() {
   loading.value = true;
   error.value = false;
   try {
-    const response = await fetch(`${import.meta.env.BASE_URL}data.json`, {
+    const response = await fetch(`${base}data.json`, {
       signal: AbortSignal.timeout(15000),
       cache: "no-cache",
     });
-    if (!response.ok) throw new Error(`HTTP ${response.status}`);
+    if (!response.ok) throw Error(`HTTP ${response.status}`);
     const data = await response.json();
-    if (!Array.isArray(data.packages)) throw new Error("Invalid catalog");
-    packages.value = data.packages;
+    if (!Array.isArray(data.packages)) throw Error("Invalid catalog");
+    packages.value = data.packages.map(enrichPackage);
     generatedAt.value = data.generatedAt;
     maintainers.value = catalogMaintainers(data);
     ready.value = true;
     loading.value = false;
-    void refresh();
-    const name = new URL(location.href).searchParams.get("package");
-    if (name) {
-      const pkg = packages.value.find((p) => p.name === name || p.shortName === name);
-      if (pkg) await openDetail(pkg);
-      else toast.value = "未找到该包，请在目录中搜索其他包。";
+    const pkg = packages.value.find(
+      (p) => p.name === initial.package || p.shortName === initial.package,
+    );
+    if (pkg) {
+      const opening = openDetail(pkg, { navigation: false, route: initial });
+      void refresh();
+      await opening;
+    } else {
+      await refresh();
+      if (initial.package) {
+        const found = packages.value.find(
+          (p) => p.name === initial.package || p.shortName === initial.package,
+        );
+        if (found) await openDetail(found, { navigation: false, route: initial });
+        else toast.value = "未找到该包，请在目录中搜索其他包。";
+      }
     }
   } catch {
     error.value = true;
@@ -97,10 +243,94 @@ async function load() {
     loading.value = false;
   }
 }
+async function openDetail(pkg, { navigation = true, route } = {}) {
+  if (!pkg) return;
+  const request = ++detailRequest;
+  routing = true;
+  versionChanged = !!route?.version;
+  detailMessage.value = "正在查询完整版本信息…";
+  if (navigation)
+    history.replaceState(
+      { ...history.state, scrollY: window.scrollY, focus: pkg.shortName },
+      "",
+      location.href,
+    );
+  selected.value = pkg;
+  version.value = route?.version || pkg.version || pkg.versions[0]?.version || "";
+  manager.value = route?.manager || manager.value;
+  mode.value = route?.mode || mode.value;
+  await nextTick();
+  if (!dialog.value.open) dialog.value.showModal();
+  if (navigation) history.pushState({ catalogModal: true }, "", routeUrl(routeState(), base));
+  routing = false;
+  try {
+    const current = enrichPackage(await registry.fetchPackage(pkg, { full: true }));
+    if (request !== detailRequest) return;
+    selected.value = current;
+    if (!versionChanged) version.value = current.version || current.versions[0]?.version || "";
+    detailMessage.value = `npm 实时查询 · ${new Date(current.checkedAt).toLocaleString("zh-CN")}（五分钟缓存）`;
+  } catch {
+    if (request === detailRequest) detailMessage.value = "实时查询失败，当前显示原有版本信息。";
+  }
+}
+function openEntry(event, name) {
+  const pkg = packages.value.find((p) => p.name === name);
+  if (pkg) {
+    event.preventDefault();
+    void openDetail(pkg);
+  }
+}
+function closeDialog() {
+  if (dialog.value.open) {
+    ignoredCloseEvents++;
+    dialog.value.close();
+  }
+}
+function onDialogClosed() {
+  if (ignoredCloseEvents > 0) {
+    ignoredCloseEvents--;
+    return;
+  }
+  closeDetail();
+}
+function closeDetail() {
+  if (!selected.value) return;
+  if (history.state?.catalogModal) {
+    history.back();
+    return;
+  }
+  detailRequest++;
+  selected.value = null;
+  closeDialog();
+  history.replaceState(null, "", routeUrl(routeState(null), base));
+}
+async function restoreRoute() {
+  const state = readRoute(location.href);
+  routing = true;
+  query.value = state.query;
+  status.value = state.status;
+  manager.value = state.manager;
+  mode.value = state.mode;
+  await nextTick();
+  const pkg = packages.value.find((p) => p.name === state.package || p.shortName === state.package);
+  if (pkg) await openDetail(pkg, { navigation: false, route: state });
+  else {
+    detailRequest++;
+    selected.value = null;
+    closeDialog();
+    await nextTick();
+    if (history.state?.focus)
+      [...document.querySelectorAll(".package-name")]
+        .find((el) => el.textContent.trim() === history.state.focus)
+        ?.focus({ preventScroll: true });
+    window.scrollTo(0, history.state?.scrollY ?? 0);
+  }
+  routing = false;
+}
 async function copy(text) {
   clearTimeout(timer);
   try {
-    if (!text) throw new Error("No command");
+    if (!text) throw Error("No command");
     await navigator.clipboard.writeText(text);
     toast.value = "已复制到剪贴板";
   } catch {
@@ -110,99 +340,34 @@ async function copy(text) {
     toast.value = "";
   }, 3500);
 }
-onMounted(load);
-onUnmounted(() => clearTimeout(timer));
-
-const labels = {
-  all: "全部包",
-  active: "可用 latest",
-  deprecated: "已废弃",
-  untagged: "无 latest 标签",
-};
-const query = ref("");
-const status = ref("all");
-const filtered = computed(() => {
-  const q = query.value.trim().toLowerCase();
-  const candidates = packages.value.filter(
-    (p) => status.value === "all" || p.status === status.value,
-  );
-  if (!q) return candidates;
-  return candidates
-    .map((pkg) => ({
-      pkg,
-      rank: [pkg.name, pkg.upstream, pkg.description].findIndex((text) =>
-        text?.toLowerCase().includes(q),
-      ),
-    }))
-    .filter((match) => match.rank >= 0)
-    .sort((a, b) => a.rank - b.rank)
-    .map((match) => match.pkg);
+onMounted(() => {
+  window.addEventListener("popstate", restoreRoute);
+  void load();
 });
-function clear() {
-  query.value = "";
-  status.value = "all";
-}
-const dialog = ref(null);
-const version = ref("");
-let versionChanged = false;
-const mode = ref("npm");
-const code = computed(
-  () => selected.value && installText(selected.value, mode.value, version.value),
-);
-const deprecated = computed(
-  () => selected.value?.versions.find((v) => v.version === version.value)?.deprecated,
-);
-function packageUrl(pkg) {
-  const url = new URL(import.meta.env.BASE_URL, location.origin);
-  url.searchParams.set("package", pkg.name);
-  return url.href;
-}
-function closeDetail() {
-  detailRequest++;
-  selected.value = null;
-  const url = new URL(location.href);
-  url.searchParams.delete("package");
-  history.replaceState(null, "", url);
-}
-async function openDetail(pkg) {
-  const request = ++detailRequest;
-  versionChanged = false;
-  detailMessage.value = "正在查询完整版本信息…";
-  selected.value = pkg;
-  version.value = pkg.version || pkg.versions[0]?.version || "";
-  mode.value = "npm";
-  await nextTick();
-  dialog.value.showModal();
-  history.replaceState(null, "", packageUrl(pkg));
-  try {
-    const current = await fetchPackage(pkg, { full: true });
-    if (request !== detailRequest) return;
-    selected.value = current;
-    if (!versionChanged) version.value = current.version || current.versions[0]?.version || "";
-    detailMessage.value = `npm 实时查询 · ${new Date(current.checkedAt).toLocaleString("zh-CN")}`;
-  } catch {
-    if (request === detailRequest) detailMessage.value = "实时查询失败，当前显示原有版本信息。";
-  }
-}
-function installText(pkg, mode = "npm", version = pkg.version) {
-  if (!version) return null;
-  const spec = `${pkg.name}@${version}`;
-  if (mode === "npm") return `npm install ${pkg.upstream ? `${pkg.upstream}@npm:` : ""}${spec}`;
-  if (!pkg.upstream) return null;
-  return JSON.stringify({ [mode]: { [pkg.upstream]: `npm:${spec}` } }, null, 2);
-}
+onUnmounted(() => {
+  clearTimeout(timer);
+  window.removeEventListener("popstate", restoreRoute);
+});
 </script>
 
 <template>
   <a class="skip" href="#catalog">跳到包目录</a>
   <header class="header">
     <div class="shell nav">
-      <a class="brand" href="./" aria-label="ohos-npm-ports 首页"
+      <a class="brand" :href="base" aria-label="ohos-npm-ports 首页"
         ><img :src="favicon" width="34" height="34" alt="" /><span
           >ohos<span class="brand-light"> / </span>npm-ports</span
         ></a
       >
-      <nav aria-label="主导航">
+      <button
+        class="mobile-menu icon-button"
+        aria-label="展开导航"
+        :aria-expanded="menuOpen"
+        @click="menuOpen = !menuOpen"
+      >
+        ☰
+      </button>
+      <nav aria-label="主导航" :class="{ expanded: menuOpen }">
         <a class="nav-current" href="#catalog">包目录</a
         ><a
           href="https://github.com/ohos-npm-ports/ohos-npm-ports/blob/main/docs/zh-CN/user/usage.md"
@@ -230,6 +395,15 @@ function installText(pkg, mode = "npm", version = pkg.version) {
         <p class="hero-description">
           查找社区移植包，确认版本，复制接入配置。<br />让你的下一个项目，从这里开始。
         </p>
+        <form class="hero-search" @submit.prevent="scrollToCatalog()">
+          <label for="hero-search">先找找项目需要的包</label
+          ><input
+            id="hero-search"
+            type="search"
+            v-model="query"
+            placeholder="包名或用途，如 sqlite3、数据库"
+          /><button class="button primary" type="submit">搜索目录 ↓</button>
+        </form>
         <div class="hero-actions">
           <a class="button primary" href="#catalog">探索包目录 <span>↓</span></a
           ><a
@@ -270,7 +444,7 @@ function installText(pkg, mode = "npm", version = pkg.version) {
       </div>
       <div>
         <strong id="active-count">{{ ready ? activeCount : "—" }}</strong
-        ><span>latest 未标记废弃</span>
+        ><span>latest 未废弃</span>
       </div>
       <div>
         <strong id="versions-count">{{ ready ? versionsCount : "—" }}</strong
@@ -291,7 +465,7 @@ function installText(pkg, mode = "npm", version = pkg.version) {
 
     <div class="live-status" role="status">
       <p>{{ liveMessage }}</p>
-      <button class="button" :disabled="refreshing || !ready" @click="refresh">
+      <button class="button" :disabled="refreshing || !ready" @click="refresh(true)">
         刷新 npm 数据
       </button>
     </div>
@@ -340,7 +514,7 @@ function installText(pkg, mode = "npm", version = pkg.version) {
                 id="search"
                 v-model="query"
                 type="search"
-                placeholder="搜索包名、上游包或描述…"
+                placeholder="搜索包名、上游包或中文用途…"
                 aria-label="搜索包"
             /></label>
           </div>
@@ -363,11 +537,26 @@ function installText(pkg, mode = "npm", version = pkg.version) {
             <div v-if="loading" class="empty">正在读取 npm 数据快照…</div>
             <div v-else-if="!filtered.length" class="empty">
               <h3>没有找到匹配的包</h3>
-              <p>试试其他关键词，或清除筛选条件。</p>
+              <p>目录未收录不代表无法在鸿蒙运行。试试包名、中文用途，或清除筛选。</p>
+              <p>
+                <a
+                  href="https://github.com/ohos-npm-ports/ohos-npm-ports/blob/main/docs/zh-CN/contributor/porting-guide.md"
+                  >先检查上游原生支持 ↗</a
+                >
+                ·
+                <a href="https://github.com/ohos-npm-ports/ohos-npm-ports/issues/new"
+                  >提交移植需求 ↗</a
+                >
+              </p>
               <button class="button" @click="clear">清除搜索与筛选</button>
             </div>
             <template v-else>
-              <article v-for="pkg in filtered" :key="pkg.name" class="package-row">
+              <article
+                v-for="pkg in filtered"
+                :key="pkg.name"
+                class="package-row"
+                :data-name="pkg.name"
+              >
                 <div class="package-main">
                   <div class="package-icon" aria-hidden="true">
                     {{ pkg.shortName.replace(/[^a-z]/gi, "").slice(0, 2) }}
@@ -382,6 +571,7 @@ function installText(pkg, mode = "npm", version = pkg.version) {
                     </button>
                     <p class="package-description">{{ pkg.description }}</p>
                     <p class="upstream">{{ pkg.upstream ? `↳ ${pkg.upstream}` : pkg.name }}</p>
+                    <a class="static-link" :href="staticUrl(pkg)">独立详情页 ↗</a>
                     <p v-if="pkg.discovered" class="discovered-badge">新发现（未进快照）</p>
                     <p class="upstream">
                       {{
@@ -401,8 +591,8 @@ function installText(pkg, mode = "npm", version = pkg.version) {
                   class="copy-row"
                   :aria-label="`复制 ${pkg.shortName} 安装命令`"
                   title="复制安装命令"
-                  :disabled="!pkg.version"
-                  @click="copy(installText(pkg))"
+                  :disabled="!installGuide(pkg).code"
+                  @click="copy(installGuide(pkg).code)"
                 >
                   ⧉
                 </button>
@@ -435,15 +625,13 @@ function installText(pkg, mode = "npm", version = pkg.version) {
     <div class="compat-note">
       <span>i</span>
       <p>
-        这里的“可用 latest”仅表示 npm 的 latest 版本未标记废弃，不代表真机验收通过。使用 npm / pnpm
-        安装原生模块时，可能还需要
-        <a href="https://www.npmjs.com/package/ohos-signpost">ohos-signpost</a>
-        签名；Bun 已内置签名。请以具体包的说明和目标设备实测为准。
+        “latest 未废弃”仅表示 npm
+        发布状态，不代表真机验收通过。请以具体包说明和目标设备运行结果为准。
       </p>
     </div>
   </main>
   <footer class="shell footer">
-    <a class="brand" href="./"
+    <a class="brand" :href="base"
       ><img :src="favicon" width="24" height="24" alt="" /><span
         >ohos<span class="brand-light"> / </span>npm-ports</span
       ></a
@@ -451,73 +639,170 @@ function installText(pkg, mode = "npm", version = pkg.version) {
     ><a href="https://github.com/ohos-npm-ports/ohos-npm-ports">源码与贡献 ↗</a>
   </footer>
 
-  <dialog ref="dialog" id="detail" aria-labelledby="detail-title" @close="closeDetail">
+  <dialog
+    ref="dialog"
+    id="detail"
+    aria-labelledby="detail-title"
+    @close="onDialogClosed"
+    @cancel.prevent="closeDetail"
+  >
     <template v-if="selected">
       <div class="dialog-head">
-        <span class="eyebrow">PACKAGE DETAILS</span
-        ><button
-          id="close-detail"
-          class="icon-button"
-          aria-label="关闭包详情"
-          @click="dialog.close()"
-        >
+        <h2 id="detail-title">{{ selected.shortName }}</h2>
+        <button id="close-detail" class="icon-button" aria-label="关闭包详情" @click="closeDetail">
           ×
         </button>
       </div>
-      <p role="status">{{ detailMessage }}</p>
-      <h2 id="detail-title">{{ selected.shortName }}</h2>
       <p id="detail-description">{{ selected.description }}</p>
       <p id="detail-warning" class="warning" :hidden="!deprecated">
         该版本已废弃：{{ deprecated }}
       </p>
       <div id="detail-links" class="detail-links">
-        <a :href="`https://www.npmjs.com/package/${selected.name}`">npm 包 ↗</a
-        ><a v-if="selected.upstream" :href="`https://www.npmjs.com/package/${selected.upstream}`"
+        <a :href="`https://www.npmjs.com/package/${selected.name}`">npm 包 ↗</a>
+        <a v-if="selected.upstream" :href="`https://www.npmjs.com/package/${selected.upstream}`"
           >上游包 ↗</a
-        ><a
-          v-if="selected.directories[0]"
-          :href="`https://github.com/ohos-npm-ports/ohos-npm-ports/tree/main/${selected.directories[0].split('/').slice(0, 2).join('/')}`"
-          >构建与补丁 ↗</a
-        ><span v-if="selected.license">{{ selected.license }}</span>
+        >
+        <button
+          id="share-detail"
+          class="quiet-share"
+          type="button"
+          aria-label="复制分享链接"
+          title="复制分享链接"
+          @click="copy(packageUrl(selected))"
+        >
+          <svg
+            width="15"
+            height="15"
+            viewBox="0 0 24 24"
+            fill="none"
+            stroke="currentColor"
+            stroke-width="1.6"
+            stroke-linecap="round"
+            stroke-linejoin="round"
+            aria-hidden="true"
+          >
+            <path
+              d="M10 13a5 5 0 0 0 7 .5l3-3a5 5 0 0 0-7-7l-2 2M14 11a5 5 0 0 0-7-.5l-3 3a5 5 0 0 0 7 7l2-2"
+            />
+          </svg>
+          分享
+        </button>
       </div>
+      <p class="warning" v-for="item in notes" :key="item.url">
+        {{ item.text }} <a :href="item.url">来源 ↗</a>
+      </p>
       <div class="version-control">
         <label for="version">发布版本</label
         ><select id="version" v-model="version" @change="versionChanged = true">
+          <option
+            v-if="version && !selected.versions.some((v) => v.version === version)"
+            :value="version"
+          >
+            {{ version }} · 当前数据未找到
+          </option>
           <option v-for="v in selected.versions" :key="v.version" :value="v.version">
             {{ v.version }}{{ v.tags.length ? ` · ${v.tags.join(", ")}` : ""
             }}{{ v.deprecated ? " · 已废弃" : "" }}
           </option>
         </select>
       </div>
-      <div id="install-modes" class="install-modes" role="group" aria-label="接入方式">
+
+      <p v-if="selected.kind === 'platform'" class="warning">
+        平台子包通常由入口包自动安装，不需要直接加入业务依赖。
+        <a
+          v-if="selected.entry"
+          :href="routeUrl({ package: selected.entry }, base).href"
+          @click="openEntry($event, selected.entry)"
+          >查看对应入口包 → {{ selected.entry }}</a
+        >
+      </p>
+
+      <div
+        id="install-modes"
+        class="install-tabs mode-tabs"
+        role="tablist"
+        aria-label="接入方式"
+        @keydown="modeKeydown"
+      >
         <button
-          v-for="(label, value) in {
-            npm: 'npm alias',
-            dependencies: 'dependencies',
-            overrides: 'overrides',
-          }"
+          v-for="(label, value) in installModes"
           :key="value"
-          :data-mode="value"
-          :aria-pressed="mode === value"
+          :id="'mode-tab-' + value"
+          type="button"
+          role="tab"
+          :aria-selected="mode === value"
+          :tabindex="mode === value ? 0 : -1"
+          aria-controls="install-panel"
           @click="mode = value"
         >
           {{ label }}
         </button>
       </div>
-      <pre id="install-code" tabindex="0">{{
-        code ||
-        (mode === "npm"
-          ? "该包没有可选发布版本。"
-          : "无法从构建文件确认上游包名。请根据包文档手动配置别名，不要猜测映射。")
-      }}</pre>
-      <button id="copy-detail" class="button primary" :disabled="!code" @click="copy(code)">
-        {{ mode === "npm" ? "复制安装命令" : "复制配置" }}
-      </button>
-      <button class="button" @click="copy(packageUrl(selected))">复制分享链接</button>
-      <p class="dialog-note">
-        npm alias 保持原有导入名；overrides 用于间接依赖。pnpm 的 overrides 配置写入
-        pnpm-workspace.yaml，不照搬 npm 配置。
-      </p>
+      <div
+        v-if="groups.length"
+        class="install-tabs manager-tabs"
+        role="tablist"
+        aria-label="包管理器"
+        @keydown="managerKeydown"
+      >
+        <button
+          v-for="group in groups"
+          :key="group.key"
+          :id="'manager-tab-' + group.key"
+          type="button"
+          role="tab"
+          :aria-selected="group.members.includes(manager)"
+          :tabindex="group.members.includes(manager) ? 0 : -1"
+          aria-controls="install-panel"
+          @click="manager = group.key"
+        >
+          {{ group.label }}
+        </button>
+      </div>
+      <section
+        id="install-panel"
+        role="tabpanel"
+        :aria-labelledby="
+          'mode-tab-' + mode + (activeManager ? ' manager-tab-' + activeManager : '')
+        "
+      >
+        <div class="code-frame">
+          <div class="code-toolbar">
+            <p class="guide-file">{{ guide.file || "接入说明" }}</p>
+            <button
+              id="copy-detail"
+              class="copy-code"
+              type="button"
+              :disabled="!code"
+              :aria-label="mode === 'alias' ? '复制安装命令' : '复制配置'"
+              :title="mode === 'alias' ? '复制安装命令' : '复制配置'"
+              @click="copy(code)"
+            >
+              <svg
+                width="15"
+                height="15"
+                viewBox="0 0 24 24"
+                fill="none"
+                stroke="currentColor"
+                stroke-width="1.6"
+                stroke-linecap="round"
+                stroke-linejoin="round"
+                aria-hidden="true"
+              >
+                <rect x="8" y="8" width="12" height="12" rx="2" />
+                <path d="M16 8V5a2 2 0 0 0-2-2H5a2 2 0 0 0-2 2v9a2 2 0 0 0 2 2h3" />
+              </svg>
+              复制
+            </button>
+          </div>
+          <pre id="install-code" tabindex="0">{{ code || guide.note }}</pre>
+        </div>
+        <p v-if="code" class="dialog-note">{{ guide.note }}</p>
+        <p v-if="detailMessage.includes('失败')" class="dialog-note">
+          实时版本查询暂不可用，当前使用已有数据。
+        </p>
+      </section>
+      <p class="sr-only" role="status">{{ detailMessage }}</p>
     </template>
   </dialog>
 

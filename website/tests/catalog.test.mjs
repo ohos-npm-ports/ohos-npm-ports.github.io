@@ -30,3 +30,22 @@ test("missing latest is not guessed and deprecation is version-specific", () => 
   });
   assert.equal(p.status, "deprecated");
 });
+
+test("declared engines and CPU stay version-specific and never imply device acceptance", () => {
+  const p = normalizePackage({
+    ...manifest,
+    versions: {
+      "1.0.0": { engines: { node: ">=20" }, cpu: ["arm64"] },
+      "2.0.0-1": { engines: { node: ">=24" }, cpu: ["arm64", "x64"] },
+    },
+  });
+  assert.equal(p.runtime, "Node >=24");
+  assert.equal(p.architecture, "arm64 / x64");
+  assert.equal(p.versions.find((v) => v.version === "1.0.0").runtime, "Node >=20");
+  assert.equal(p.verification.length, 0);
+  const next = normalizePackage(
+    { ...manifest, "dist-tags": { latest: "3" }, versions: { 3: {} } },
+    p,
+  );
+  assert.equal(next.runtime, null);
+});

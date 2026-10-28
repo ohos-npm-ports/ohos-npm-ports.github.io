@@ -217,3 +217,67 @@ test("the built-in maintainer list only applies when the snapshot has none", () 
   assert.deepEqual(catalogMaintainers({}), ["hqzing"]);
   assert.deepEqual(catalogMaintainers({ maintainers: [] }), ["hqzing"]);
 });
+
+test("cache reuses fresh responses, expires, deduplicates and separates full metadata", async () => {
+  const { createRegistryClient } = await import("../src/registry.mjs");
+  let calls = 0,
+    now = 1000;
+  const fetcher = async () => {
+    calls++;
+    return packument(pkg.name, "2");
+  };
+  const client = createRegistryClient({ fetcher, now: () => now, storage: null });
+  await Promise.all([client.fetchPackage(pkg), client.fetchPackage(pkg)]);
+  assert.equal(calls, 1);
+  await client.fetchPackage(pkg);
+  assert.equal(calls, 1);
+  await client.fetchPackage(pkg, { full: true });
+  assert.equal(calls, 2);
+  now += 300001;
+  await client.fetchPackage(pkg);
+  assert.equal(calls, 3);
+  await client.fetchPackage(pkg, { force: true });
+  assert.equal(calls, 4);
+});
+test("corrupt or inaccessible persistent cache never blocks network requests", async () => {
+  const { createRegistryClient } = await import("../src/registry.mjs");
+  for (const storage of [
+    {
+      getItem: () => "{broken",
+      setItem: () => {
+        throw Error("quota");
+      },
+    },
+    {
+      getItem: () => {
+        throw Error("denied");
+      },
+    },
+  ]) {
+    const client = createRegistryClient({ storage, fetcher: async () => packument(pkg.name, "2") });
+    assert.equal((await client.fetchPackage(pkg)).version, "2");
+  }
+});
+
+test("manual catalog invalidation also removes full detail cache", async () => {
+  const { createRegistryClient } = await import("../src/registry.mjs");
+  const saved = new Map();
+  let calls = 0;
+  const storage = {
+    getItem: (key) => saved.get(key),
+    setItem: (key, value) => saved.set(key, value),
+    removeItem: (key) => saved.delete(key),
+  };
+  const client = createRegistryClient({
+    storage,
+    fetcher: async () => {
+      calls++;
+      return packument(pkg.name, "2");
+    },
+  });
+  await client.fetchPackage(pkg, { full: true });
+  client.invalidate(pkg.name);
+  await client.fetchPackage(pkg, { full: true });
+  assert.equal(calls, 2);
+  assert.equal(saved.size, 1);
+});

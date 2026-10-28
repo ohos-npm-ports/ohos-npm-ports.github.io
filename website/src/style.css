@@ -806,23 +806,6 @@ dialog h2 {
   padding: 8px;
   border-radius: 5px;
 }
-.install-modes {
-  display: flex;
-  gap: 5px;
-  flex-wrap: wrap;
-  border-bottom: 1px solid var(--line);
-}
-.install-modes button {
-  padding: 9px;
-  font:
-    14px ui-monospace,
-    monospace;
-  border-bottom: 2px solid transparent;
-}
-.install-modes button[aria-pressed="true"] {
-  border-color: var(--green);
-  color: var(--green);
-}
 #install-code {
   font:
     14px/1.8 ui-monospace,
@@ -1107,5 +1090,347 @@ dialog h2 {
   }
   * {
     transition: none !important;
+  }
+}
+
+/* Keep the existing palette while making discovery and instructions easier to use. */
+.mobile-menu {
+  display: none;
+}
+.hero {
+  padding-block: 40px;
+}
+.hero-search {
+  display: grid;
+  grid-template-columns: minmax(0, 1fr) auto;
+  gap: 10px;
+  margin-top: 22px;
+}
+.hero-search label {
+  grid-column: 1/-1;
+  font-size: 14px;
+  color: var(--muted);
+}
+.hero-search input {
+  width: 100%;
+  min-width: 0;
+  padding: 10px;
+  border: 1px solid var(--line);
+  background: var(--surface);
+  color: var(--text);
+  border-radius: 6px;
+}
+select {
+  max-width: 100%;
+  min-height: 44px;
+  padding: 6px;
+  border: 1px solid var(--line);
+  border-radius: 5px;
+  background: var(--surface);
+  color: var(--text);
+}
+.static-link {
+  font-size: 12px;
+  color: var(--muted);
+}
+.static-link {
+  display: inline-block;
+  min-height: 32px;
+  text-decoration: underline;
+}
+.icon-button,
+.copy-row,
+.button,
+.package-name {
+  min-width: 44px;
+  min-height: 44px;
+}
+.dialog-note a,
+.empty a,
+.warning a {
+  text-decoration: underline;
+}
+.guide-file {
+  font-weight: 600;
+  margin-top: 16px;
+}
+dialog {
+  max-height: calc(100dvh - 32px);
+  overscroll-behavior: contain;
+}
+#install-code {
+  white-space: pre;
+  overflow-x: auto;
+  max-width: 100%;
+}
+.static-content {
+  padding-block: 32px;
+  max-width: 1000px;
+}
+.static-content h1,
+.static-content h2,
+.static-content p,
+.static-content details,
+.static-content li {
+  margin-block: 16px;
+  overflow-wrap: anywhere;
+}
+.static-content a {
+  text-decoration: underline;
+}
+.static-content pre {
+  overflow: auto;
+  padding: 16px;
+  background: var(--soft);
+  white-space: pre;
+}
+.static-content summary {
+  cursor: pointer;
+  min-height: 44px;
+}
+@media (max-width: 760px) {
+  .nav {
+    position: relative;
+    flex-wrap: wrap;
+    height: auto;
+    min-height: 68px;
+    padding-block: 8px;
+  }
+  .mobile-menu {
+    display: grid;
+    place-items: center;
+    margin-left: auto;
+  }
+  .nav nav {
+    width: 100%;
+    justify-content: space-between;
+  }
+  .nav nav:not(.expanded) > a {
+    display: none;
+  }
+  .nav nav.expanded a:nth-child(2),
+  .nav nav.expanded a:nth-child(3) {
+    display: inline-flex;
+  }
+  .nav nav a {
+    align-items: center;
+    min-height: 44px;
+    font-size: 13px;
+  }
+  .hero {
+    padding-block: 20px;
+    gap: 20px;
+  }
+  .hero h1 {
+    margin-top: 12px;
+    font-size: 32px;
+  }
+  .hero-search {
+    grid-template-columns: minmax(0, 1fr);
+  }
+  .hero-search button {
+    width: 100%;
+  }
+  .terminal {
+    display: none;
+  }
+  .hero-actions {
+    margin-top: 12px;
+  }
+  .sidebar {
+    display: block;
+  }
+  .copy-row {
+    width: 44px;
+    height: 44px;
+  }
+  dialog {
+    width: calc(100% - 24px);
+    padding: 18px;
+  }
+}
+.live-status {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 16px;
+  margin-bottom: 28px;
+  font-size: 14px;
+}
+.live-status .button {
+  flex-shrink: 0;
+}
+@media (max-width: 760px) {
+  .nav nav {
+    width: auto;
+  }
+  .nav nav.expanded {
+    width: 100%;
+  }
+  .hero-description {
+    margin-top: 16px;
+    line-height: 1.7;
+  }
+  .live-status {
+    align-items: stretch;
+    flex-direction: column;
+    gap: 10px;
+  }
+}
+
+.dialog-head h2 {
+  margin: 0;
+}
+.detail-disclosure {
+  margin-top: 16px;
+  padding-top: 12px;
+  border-top: 1px solid var(--line);
+  font-size: 14px;
+}
+.detail-disclosure summary {
+  min-height: 44px;
+  cursor: pointer;
+  font-weight: 600;
+}
+.detail-disclosure p,
+.detail-disclosure > a {
+  margin-top: 8px;
+  overflow-wrap: anywhere;
+}
+.detail-disclosure a {
+  text-decoration: underline;
+}
+
+.install-tabs {
+  display: flex;
+  gap: 4px;
+  min-width: 0;
+}
+.install-tabs button {
+  border: 0;
+  min-height: 44px;
+  padding: 8px 12px;
+  font-size: 14px;
+  font-weight: 550;
+  white-space: nowrap;
+  color: var(--muted);
+}
+.mode-tabs {
+  border-bottom: 1px solid var(--line);
+  margin: 20px 0;
+}
+.mode-tabs button {
+  flex: 1;
+  position: relative;
+}
+.mode-tabs button[aria-selected="true"] {
+  color: var(--green);
+}
+.mode-tabs button[aria-selected="true"]::after {
+  content: "";
+  position: absolute;
+  height: 2px;
+  left: 10px;
+  right: 10px;
+  bottom: -1px;
+  background: var(--green);
+}
+.manager-tabs {
+  display: inline-flex;
+  background: var(--soft);
+  border-radius: 7px;
+  padding: 3px;
+  margin-bottom: 18px;
+}
+.manager-tabs button {
+  min-height: 36px;
+  min-width: 65px;
+  padding: 5px 12px;
+  border-radius: 5px;
+  font-size: 13px;
+}
+.manager-tabs button[aria-selected="true"] {
+  color: var(--text);
+  background: var(--surface);
+  box-shadow: 0 1px 4px #213c3210;
+}
+.sr-only {
+  position: absolute;
+  width: 1px;
+  height: 1px;
+  overflow: hidden;
+  clip-path: inset(50%);
+  white-space: nowrap;
+}
+@media (max-width: 480px) {
+  .mode-tabs button {
+    font-size: 13px;
+    padding-inline: 6px;
+  }
+}
+
+/* Secondary actions sit beside the content they operate on, not in a CTA footer. */
+.quiet-share,
+.copy-code {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: 6px;
+  color: var(--muted);
+  font-size: 13px;
+  font-weight: 400;
+  border: 0;
+  background: transparent;
+  border-radius: 5px;
+}
+.quiet-share {
+  min-height: 32px;
+  padding: 0 4px;
+  text-decoration: none;
+}
+.quiet-share:hover,
+.copy-code:hover:not(:disabled) {
+  color: var(--text);
+  background: var(--soft);
+}
+.code-frame {
+  border: 1px solid var(--line);
+  border-radius: 8px;
+  background: var(--soft);
+  overflow: hidden;
+}
+.code-toolbar {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 12px;
+  padding: 4px 8px 0 16px;
+}
+.code-toolbar .guide-file {
+  margin: 0;
+  font-size: 12px;
+  color: var(--muted);
+  font-weight: 400;
+  overflow-wrap: anywhere;
+}
+.copy-code {
+  min-width: 64px;
+  min-height: 40px;
+  padding: 6px 8px;
+  flex-shrink: 0;
+}
+.code-frame #install-code {
+  margin: 0;
+  padding: 12px 16px 18px;
+  background: transparent;
+  border-radius: 0;
+}
+#detail-links {
+  align-items: center;
+}
+@media (pointer: coarse) {
+  .quiet-share,
+  .copy-code {
+    min-height: 44px;
   }
 }

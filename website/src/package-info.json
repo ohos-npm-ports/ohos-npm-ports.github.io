@@ -1,0 +1,476 @@
+{
+  "ast-grep-napi": {
+    "kind": "entry",
+    "keywords": ["代码", "搜索", "AST", "重写"],
+    "verification": [],
+    "sources": [
+      {
+        "label": "移植源码与补丁",
+        "url": "https://github.com/ohos-npm-ports/ohos-npm-ports/tree/dcdc6c49dea4aa962a05f849684b1229ce283d4e/ports/ast-grep-napi"
+      }
+    ]
+  },
+  "bufferutil": {
+    "kind": "entry",
+    "keywords": ["原生", "WebSocket", "缓冲"],
+    "verification": [],
+    "sources": [
+      {
+        "label": "移植源码与补丁",
+        "url": "https://github.com/ohos-npm-ports/ohos-npm-ports/tree/dcdc6c49dea4aa962a05f849684b1229ce283d4e/ports/bufferutil"
+      }
+    ]
+  },
+  "bun": {
+    "kind": "entry",
+    "keywords": ["运行时", "包管理器", "JavaScript"],
+    "verification": [],
+    "sources": [
+      {
+        "label": "移植源码与补丁",
+        "url": "https://github.com/ohos-npm-ports/ohos-npm-ports/tree/dcdc6c49dea4aa962a05f849684b1229ce283d4e/ports/bun"
+      }
+    ]
+  },
+  "bun-plugin-tailwind": {
+    "kind": "entry",
+    "keywords": ["样式", "CSS", "Tailwind", "Bun", "插件"],
+    "verification": [],
+    "sources": [
+      {
+        "label": "移植源码与补丁",
+        "url": "https://github.com/ohos-npm-ports/ohos-npm-ports/tree/dcdc6c49dea4aa962a05f849684b1229ce283d4e/ports/bun-plugin-tailwind"
+      }
+    ]
+  },
+  "bun-pty": {
+    "kind": "entry",
+    "keywords": ["终端", "伪终端", "PTY"],
+    "verification": [],
+    "sources": [
+      {
+        "label": "移植源码与补丁",
+        "url": "https://github.com/ohos-npm-ports/ohos-npm-ports/tree/dcdc6c49dea4aa962a05f849684b1229ce283d4e/ports/bun-pty"
+      }
+    ]
+  },
+  "datadog-pprof": {
+    "kind": "entry",
+    "keywords": ["性能", "分析", "采样"],
+    "verification": [],
+    "sources": [
+      {
+        "label": "移植源码与补丁",
+        "url": "https://github.com/ohos-npm-ports/ohos-npm-ports/tree/dcdc6c49dea4aa962a05f849684b1229ce283d4e/ports/datadog-pprof"
+      }
+    ]
+  },
+  "lightningcss": {
+    "kind": "entry",
+    "keywords": ["样式", "CSS", "压缩", "转换"],
+    "verification": [],
+    "sources": [
+      {
+        "label": "移植源码与补丁",
+        "url": "https://github.com/ohos-npm-ports/ohos-npm-ports/tree/dcdc6c49dea4aa962a05f849684b1229ce283d4e/ports/lightningcss"
+      }
+    ]
+  },
+  "next": {
+    "kind": "entry",
+    "keywords": ["前端", "React", "框架", "服务端渲染"],
+    "verification": [],
+    "sources": [
+      {
+        "label": "移植源码与补丁",
+        "url": "https://github.com/ohos-npm-ports/ohos-npm-ports/tree/dcdc6c49dea4aa962a05f849684b1229ce283d4e/ports/next"
+      }
+    ]
+  },
+  "next-swc-openharmony-arm64": {
+    "kind": "platform",
+    "keywords": ["前端", "React", "框架", "服务端渲染"],
+    "verification": [],
+    "entry": "@ohos-npm-ports/next",
+    "sources": [
+      {
+        "label": "移植源码与补丁",
+        "url": "https://github.com/ohos-npm-ports/ohos-npm-ports/tree/dcdc6c49dea4aa962a05f849684b1229ce283d4e/ports/next"
+      }
+    ]
+  },
+  "nw": {
+    "kind": "entry",
+    "keywords": ["浏览器", "桌面", "NW", "桥接"],
+    "verification": [],
+    "sources": [
+      {
+        "label": "移植源码与补丁",
+        "url": "https://github.com/ohos-npm-ports/ohos-npm-ports/tree/dcdc6c49dea4aa962a05f849684b1229ce283d4e/ports/nw"
+      }
+    ],
+    "notes": [
+      {
+        "text": "这是使用本机海泰浏览器与 CDP 的受限兼容桥，不是原生 NW.js 运行时。需要 Node、aa 和已安装的海泰浏览器；不支持任意 Node 模块、原生插件、子进程和完整 NW.js API。",
+        "url": "https://github.com/ohos-npm-ports/ohos-npm-ports/tree/dcdc6c49dea4aa962a05f849684b1229ce283d4e/ports/nw/0.119.2/README.md",
+        "version": "0.119.2-1"
+      }
+    ]
+  },
+  "nx": {
+    "kind": "entry",
+    "keywords": ["构建", "monorepo", "工作区"],
+    "verification": [],
+    "sources": [
+      {
+        "label": "移植源码与补丁",
+        "url": "https://github.com/ohos-npm-ports/ohos-npm-ports/tree/dcdc6c49dea4aa962a05f849684b1229ce283d4e/ports/nx"
+      }
+    ]
+  },
+  "opentui-core": {
+    "kind": "entry",
+    "keywords": ["终端", "界面", "TUI"],
+    "verification": [],
+    "sources": [
+      {
+        "label": "移植源码与补丁",
+        "url": "https://github.com/ohos-npm-ports/ohos-npm-ports/tree/dcdc6c49dea4aa962a05f849684b1229ce283d4e/ports/opentui-core"
+      }
+    ]
+  },
+  "opentui-core-openharmony-arm64": {
+    "kind": "platform",
+    "keywords": ["终端", "界面", "TUI"],
+    "verification": [],
+    "entry": "@ohos-npm-ports/opentui-core",
+    "sources": [
+      {
+        "label": "移植源码与补丁",
+        "url": "https://github.com/ohos-npm-ports/ohos-npm-ports/tree/dcdc6c49dea4aa962a05f849684b1229ce283d4e/ports/opentui-core-openharmony-arm64"
+      }
+    ]
+  },
+  "oven-bun-openharmony-arm64": {
+    "kind": "platform",
+    "keywords": ["运行时", "包管理器", "JavaScript"],
+    "verification": [],
+    "entry": "@ohos-npm-ports/bun",
+    "sources": [
+      {
+        "label": "移植源码与补丁",
+        "url": "https://github.com/ohos-npm-ports/ohos-npm-ports/tree/dcdc6c49dea4aa962a05f849684b1229ce283d4e/ports/bun"
+      }
+    ]
+  },
+  "oxlint-tsgolint": {
+    "kind": "entry",
+    "keywords": ["代码", "类型检查", "lint"],
+    "verification": [],
+    "sources": [
+      {
+        "label": "移植源码与补丁",
+        "url": "https://github.com/ohos-npm-ports/ohos-npm-ports/tree/dcdc6c49dea4aa962a05f849684b1229ce283d4e/ports/oxlint-tsgolint"
+      }
+    ]
+  },
+  "parcel-watcher": {
+    "kind": "entry",
+    "keywords": ["文件", "监听", "构建"],
+    "verification": [],
+    "sources": [
+      {
+        "label": "移植源码与补丁",
+        "url": "https://github.com/ohos-npm-ports/ohos-npm-ports/tree/dcdc6c49dea4aa962a05f849684b1229ce283d4e/ports/parcel-watcher"
+      }
+    ]
+  },
+  "parcel-watcher-openharmony-arm64": {
+    "kind": "platform",
+    "keywords": ["文件", "监听", "构建"],
+    "verification": [],
+    "entry": "@ohos-npm-ports/parcel-watcher",
+    "sources": [
+      {
+        "label": "移植源码与补丁",
+        "url": "https://github.com/ohos-npm-ports/ohos-npm-ports/tree/dcdc6c49dea4aa962a05f849684b1229ce283d4e/ports/parcel-watcher-openharmony-arm64"
+      }
+    ]
+  },
+  "playwright-core": {
+    "kind": "entry",
+    "keywords": ["浏览器", "自动化", "测试"],
+    "verification": [],
+    "sources": [
+      {
+        "label": "移植源码与补丁",
+        "url": "https://github.com/ohos-npm-ports/ohos-npm-ports/tree/dcdc6c49dea4aa962a05f849684b1229ce283d4e/ports/playwright-core"
+      }
+    ]
+  },
+  "playwright-mcp": {
+    "kind": "entry",
+    "keywords": ["浏览器", "自动化", "MCP"],
+    "verification": [],
+    "sources": [
+      {
+        "label": "移植源码与补丁",
+        "url": "https://github.com/ohos-npm-ports/ohos-npm-ports/tree/dcdc6c49dea4aa962a05f849684b1229ce283d4e/ports/playwright-mcp"
+      }
+    ]
+  },
+  "pnpm": {
+    "kind": "entry",
+    "keywords": ["包管理器", "依赖", "安装"],
+    "verification": [],
+    "sources": [
+      {
+        "label": "移植源码与补丁",
+        "url": "https://github.com/ohos-npm-ports/ohos-npm-ports/tree/dcdc6c49dea4aa962a05f849684b1229ce283d4e/ports/pnpm"
+      }
+    ]
+  },
+  "pnpm-exe.openharmony-arm64": {
+    "kind": "platform",
+    "keywords": ["包管理器", "依赖", "安装"],
+    "verification": [],
+    "entry": "@ohos-npm-ports/pnpm",
+    "sources": [
+      {
+        "label": "移植源码与补丁",
+        "url": "https://github.com/ohos-npm-ports/ohos-npm-ports/tree/dcdc6c49dea4aa962a05f849684b1229ce283d4e/ports/pnpm"
+      }
+    ]
+  },
+  "pnpm-openharmony-arm64": {
+    "kind": "platform",
+    "keywords": [],
+    "verification": [],
+    "sources": [
+      {
+        "label": "npm 包信息",
+        "url": "https://www.npmjs.com/package/@ohos-npm-ports/pnpm-openharmony-arm64"
+      }
+    ]
+  },
+  "prisma": {
+    "kind": "entry",
+    "keywords": ["数据库", "ORM", "迁移"],
+    "verification": [],
+    "sources": [
+      {
+        "label": "移植源码与补丁",
+        "url": "https://github.com/ohos-npm-ports/ohos-npm-ports/tree/dcdc6c49dea4aa962a05f849684b1229ce283d4e/ports/prisma"
+      }
+    ]
+  },
+  "prisma-client": {
+    "kind": "entry",
+    "keywords": ["数据库", "ORM", "客户端"],
+    "verification": [],
+    "sources": [
+      {
+        "label": "移植源码与补丁",
+        "url": "https://github.com/ohos-npm-ports/ohos-npm-ports/tree/dcdc6c49dea4aa962a05f849684b1229ce283d4e/ports/prisma-client"
+      }
+    ]
+  },
+  "prisma-engines": {
+    "kind": "tool",
+    "keywords": ["数据库", "Prisma", "引擎"],
+    "verification": [],
+    "sources": [
+      {
+        "label": "移植源码与补丁",
+        "url": "https://github.com/ohos-npm-ports/ohos-npm-ports/tree/dcdc6c49dea4aa962a05f849684b1229ce283d4e/ports/prisma-engines"
+      }
+    ],
+    "notes": [
+      {
+        "text": "该引擎不是普通业务入口。源码说明需通过 PRISMA_QUERY_ENGINE_LIBRARY 和 PRISMA_SCHEMA_ENGINE_BINARY 指定二进制路径，不能推断为任意 Prisma 版本的透明替换。",
+        "url": "https://github.com/ohos-npm-ports/ohos-npm-ports/tree/dcdc6c49dea4aa962a05f849684b1229ce283d4e/ports/prisma-engines/5.1.1/build.sh"
+      }
+    ],
+    "installPolicy": "manual"
+  },
+  "resvg-resvg-js": {
+    "kind": "entry",
+    "keywords": ["图片", "SVG", "渲染"],
+    "verification": [],
+    "sources": [
+      {
+        "label": "移植源码与补丁",
+        "url": "https://github.com/ohos-npm-ports/ohos-npm-ports/tree/dcdc6c49dea4aa962a05f849684b1229ce283d4e/ports/resvg-resvg-js"
+      }
+    ]
+  },
+  "sharp": {
+    "kind": "entry",
+    "keywords": ["图片", "图像", "缩放", "转换"],
+    "verification": [],
+    "sources": [
+      {
+        "label": "移植源码与补丁",
+        "url": "https://github.com/ohos-npm-ports/ohos-npm-ports/tree/dcdc6c49dea4aa962a05f849684b1229ce283d4e/ports/sharp"
+      }
+    ]
+  },
+  "sqlite3": {
+    "kind": "entry",
+    "keywords": ["数据库", "SQLite", "存储"],
+    "verification": [],
+    "sources": [
+      {
+        "label": "移植源码与补丁",
+        "url": "https://github.com/ohos-npm-ports/ohos-npm-ports/tree/dcdc6c49dea4aa962a05f849684b1229ce283d4e/ports/sqlite3"
+      }
+    ]
+  },
+  "tailwindcss-oxide": {
+    "kind": "entry",
+    "keywords": ["样式", "CSS", "Tailwind"],
+    "verification": [],
+    "sources": [
+      {
+        "label": "移植源码与补丁",
+        "url": "https://github.com/ohos-npm-ports/ohos-npm-ports/tree/dcdc6c49dea4aa962a05f849684b1229ce283d4e/ports/tailwindcss-oxide"
+      }
+    ]
+  },
+  "tailwindcss-oxide-openharmony-arm64": {
+    "kind": "platform",
+    "keywords": ["样式", "CSS", "Tailwind"],
+    "verification": [],
+    "entry": "@ohos-npm-ports/tailwindcss-oxide",
+    "sources": [
+      {
+        "label": "移植源码与补丁",
+        "url": "https://github.com/ohos-npm-ports/ohos-npm-ports/tree/dcdc6c49dea4aa962a05f849684b1229ce283d4e/ports/tailwindcss-oxide"
+      }
+    ]
+  },
+  "testcafe": {
+    "kind": "entry",
+    "keywords": ["浏览器", "测试", "自动化"],
+    "verification": [],
+    "sources": [
+      {
+        "label": "移植源码与补丁",
+        "url": "https://github.com/ohos-npm-ports/ohos-npm-ports/tree/dcdc6c49dea4aa962a05f849684b1229ce283d4e/ports/testcafe"
+      }
+    ]
+  },
+  "tsrs": {
+    "kind": "entry",
+    "keywords": ["代码", "TypeScript", "语言服务"],
+    "verification": [],
+    "sources": [
+      {
+        "label": "移植源码与补丁",
+        "url": "https://github.com/ohos-npm-ports/ohos-npm-ports/tree/dcdc6c49dea4aa962a05f849684b1229ce283d4e/ports/tsrs"
+      }
+    ]
+  },
+  "tsrs-openharmony-arm64": {
+    "kind": "platform",
+    "keywords": ["代码", "TypeScript", "语言服务"],
+    "verification": [],
+    "entry": "@ohos-npm-ports/tsrs",
+    "sources": [
+      {
+        "label": "移植源码与补丁",
+        "url": "https://github.com/ohos-npm-ports/ohos-npm-ports/tree/dcdc6c49dea4aa962a05f849684b1229ce283d4e/ports/tsrs"
+      }
+    ]
+  },
+  "turbo": {
+    "kind": "entry",
+    "keywords": ["构建", "monorepo", "缓存"],
+    "verification": [],
+    "sources": [
+      {
+        "label": "移植源码与补丁",
+        "url": "https://github.com/ohos-npm-ports/ohos-npm-ports/tree/dcdc6c49dea4aa962a05f849684b1229ce283d4e/ports/turbo"
+      }
+    ]
+  },
+  "typescript": {
+    "kind": "entry",
+    "keywords": ["编译", "类型检查", "TS"],
+    "verification": [],
+    "sources": [
+      {
+        "label": "移植源码与补丁",
+        "url": "https://github.com/ohos-npm-ports/ohos-npm-ports/tree/dcdc6c49dea4aa962a05f849684b1229ce283d4e/ports/typescript"
+      }
+    ]
+  },
+  "typescript-native-preview": {
+    "kind": "entry",
+    "keywords": ["编译", "类型检查", "原生", "TS"],
+    "verification": [],
+    "sources": [
+      {
+        "label": "移植源码与补丁",
+        "url": "https://github.com/ohos-npm-ports/ohos-npm-ports/tree/dcdc6c49dea4aa962a05f849684b1229ce283d4e/ports/typescript-native-preview"
+      }
+    ]
+  },
+  "typescript-native-preview-openharmony-arm64": {
+    "kind": "platform",
+    "keywords": ["编译", "类型检查", "原生", "TS"],
+    "verification": [],
+    "entry": "@ohos-npm-ports/typescript-native-preview",
+    "sources": [
+      {
+        "label": "移植源码与补丁",
+        "url": "https://github.com/ohos-npm-ports/ohos-npm-ports/tree/dcdc6c49dea4aa962a05f849684b1229ce283d4e/ports/typescript-native-preview"
+      }
+    ]
+  },
+  "typescript-openharmony-arm64": {
+    "kind": "platform",
+    "keywords": ["编译", "类型检查", "TS"],
+    "verification": [],
+    "entry": "@ohos-npm-ports/typescript",
+    "sources": [
+      {
+        "label": "移植源码与补丁",
+        "url": "https://github.com/ohos-npm-ports/ohos-npm-ports/tree/dcdc6c49dea4aa962a05f849684b1229ce283d4e/ports/typescript"
+      }
+    ]
+  },
+  "vite-plus": {
+    "kind": "entry",
+    "keywords": ["前端", "构建", "格式化", "检查", "Vite"],
+    "verification": [],
+    "sources": [
+      {
+        "label": "移植源码与补丁",
+        "url": "https://github.com/ohos-npm-ports/ohos-npm-ports/tree/dcdc6c49dea4aa962a05f849684b1229ce283d4e/ports/vite-plus"
+      }
+    ]
+  },
+  "yuku-codegen": {
+    "kind": "entry",
+    "keywords": ["代码", "生成"],
+    "verification": [],
+    "sources": [
+      {
+        "label": "移植源码与补丁",
+        "url": "https://github.com/ohos-npm-ports/ohos-npm-ports/tree/dcdc6c49dea4aa962a05f849684b1229ce283d4e/ports/yuku-codegen"
+      }
+    ]
+  },
+  "yuku-parser": {
+    "kind": "entry",
+    "keywords": ["代码", "解析", "AST"],
+    "verification": [],
+    "sources": [
+      {
+        "label": "移植源码与补丁",
+        "url": "https://github.com/ohos-npm-ports/ohos-npm-ports/tree/dcdc6c49dea4aa962a05f849684b1229ce283d4e/ports/yuku-parser"
+      }
+    ]
+  }
+}
