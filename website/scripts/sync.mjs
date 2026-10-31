@@ -11,7 +11,10 @@ async function readTexts(path, files = []) {
   for (const entry of await readdir(path, { withFileTypes: true })) {
     if (entry.isDirectory()) {
       if (entry.name !== "node_modules") await readTexts(join(path, entry.name), files);
-    } else if (entry.isFile() && (entry.name === "NPMBUILD" || /\.(?:sh|patch|json|js)$/.test(entry.name)))
+    } else if (
+      entry.isFile() &&
+      (entry.name === "NPMBUILD" || /\.(?:sh|patch|json|js)$/.test(entry.name))
+    )
       files.push(await readFile(join(path, entry.name), "utf8"));
   }
   return files;
@@ -74,8 +77,8 @@ export async function discoverSources(portsRoot) {
         text.match(/^-\s*"name":\s*"([^"]+)"/m)?.[1];
     }
     const names = new Set(
-      [`${scope}${portName}`, ...text.matchAll(/@ohos-npm-ports\/[a-z0-9][a-z0-9._-]*/g)].map(
-        (v) => (typeof v === "string" ? v : v[0]),
+      [`${scope}${portName}`, ...text.matchAll(/@ohos-npm-ports\/[a-z0-9][a-z0-9._-]*/g)].map((v) =>
+        typeof v === "string" ? v : v[0],
       ),
     );
     for (const name of names) {
@@ -92,7 +95,10 @@ export async function discoverSources(portsRoot) {
   for (const [name, source] of sources) {
     const primary = name.slice(scope.length);
     const isPrimary = (directory) =>
-      directory.split("/").slice(1).some((part) => part.replace(/@.*$/, "") === primary);
+      directory
+        .split("/")
+        .slice(1)
+        .some((part) => part.replace(/@.*$/, "") === primary);
     source.directories.sort(
       (a, b) => Number(isPrimary(b)) - Number(isPrimary(a)) || a.localeCompare(b),
     );
