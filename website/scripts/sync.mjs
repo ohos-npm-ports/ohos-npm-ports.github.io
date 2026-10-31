@@ -77,8 +77,8 @@ export async function discoverSources(portsRoot) {
         text.match(/^-\s*"name":\s*"([^"]+)"/m)?.[1];
     }
     const names = new Set(
-      [`${scope}${portName}`, ...text.matchAll(/@ohos-npm-ports\/[a-z0-9][a-z0-9._-]*/g)].map((v) =>
-        typeof v === "string" ? v : v[0],
+      [`${scope}${portName}`, ...text.matchAll(/@ohos-npm-ports\/[a-z0-9][a-z0-9._-]*/g)].map(
+        (v) => (typeof v === "string" ? v : v[0]),
       ),
     );
     for (const name of names) {
