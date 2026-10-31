@@ -6,7 +6,7 @@
     "sources": [
       {
         "label": "移植源码与补丁",
-        "url": "https://github.com/ohos-npm-ports/ohos-npm-ports/tree/dcdc6c49dea4aa962a05f849684b1229ce283d4e/ports/ast-grep-napi"
+        "url": "https://github.com/ohos-npm-ports/ohos-npm-ports/tree/main/ports/a/ast-grep-napi"
       }
     ]
   },
@@ -17,7 +17,7 @@
     "sources": [
       {
         "label": "移植源码与补丁",
-        "url": "https://github.com/ohos-npm-ports/ohos-npm-ports/tree/dcdc6c49dea4aa962a05f849684b1229ce283d4e/ports/bufferutil"
+        "url": "https://github.com/ohos-npm-ports/ohos-npm-ports/tree/main/ports/b/bufferutil"
       }
     ]
   },
@@ -61,7 +61,7 @@
     "sources": [
       {
         "label": "移植源码与补丁",
-        "url": "https://github.com/ohos-npm-ports/ohos-npm-ports/tree/dcdc6c49dea4aa962a05f849684b1229ce283d4e/ports/datadog-pprof"
+        "url": "https://github.com/ohos-npm-ports/ohos-npm-ports/tree/main/ports/d/datadog-pprof"
       }
     ]
   },
@@ -72,7 +72,7 @@
     "sources": [
       {
         "label": "移植源码与补丁",
-        "url": "https://github.com/ohos-npm-ports/ohos-npm-ports/tree/dcdc6c49dea4aa962a05f849684b1229ce283d4e/ports/lightningcss"
+        "url": "https://github.com/ohos-npm-ports/ohos-npm-ports/tree/main/ports/l/lightningcss"
       }
     ]
   },
@@ -83,7 +83,7 @@
     "sources": [
       {
         "label": "移植源码与补丁",
-        "url": "https://github.com/ohos-npm-ports/ohos-npm-ports/tree/dcdc6c49dea4aa962a05f849684b1229ce283d4e/ports/next"
+        "url": "https://github.com/ohos-npm-ports/ohos-npm-ports/tree/main/ports/n/next"
       }
     ]
   },
@@ -95,7 +95,7 @@
     "sources": [
       {
         "label": "移植源码与补丁",
-        "url": "https://github.com/ohos-npm-ports/ohos-npm-ports/tree/dcdc6c49dea4aa962a05f849684b1229ce283d4e/ports/next"
+        "url": "https://github.com/ohos-npm-ports/ohos-npm-ports/tree/main/ports/n/next"
       }
     ]
   },
@@ -106,13 +106,13 @@
     "sources": [
       {
         "label": "移植源码与补丁",
-        "url": "https://github.com/ohos-npm-ports/ohos-npm-ports/tree/dcdc6c49dea4aa962a05f849684b1229ce283d4e/ports/nw"
+        "url": "https://github.com/ohos-npm-ports/ohos-npm-ports/tree/main/ports/n/nw"
       }
     ],
     "notes": [
       {
         "text": "这是使用本机海泰浏览器与 CDP 的受限兼容桥，不是原生 NW.js 运行时。需要 Node、aa 和已安装的海泰浏览器；不支持任意 Node 模块、原生插件、子进程和完整 NW.js API。",
-        "url": "https://github.com/ohos-npm-ports/ohos-npm-ports/tree/dcdc6c49dea4aa962a05f849684b1229ce283d4e/ports/nw/0.119.2/README.md",
+        "url": "https://github.com/ohos-npm-ports/ohos-npm-ports/blob/main/ports/n/nw/README.md",
         "version": "0.119.2-1"
       }
     ]
@@ -124,7 +124,7 @@
     "sources": [
       {
         "label": "移植源码与补丁",
-        "url": "https://github.com/ohos-npm-ports/ohos-npm-ports/tree/dcdc6c49dea4aa962a05f849684b1229ce283d4e/ports/nx"
+        "url": "https://github.com/ohos-npm-ports/ohos-npm-ports/tree/main/ports/n/nx"
       }
     ]
   },
@@ -135,7 +135,7 @@
     "sources": [
       {
         "label": "移植源码与补丁",
-        "url": "https://github.com/ohos-npm-ports/ohos-npm-ports/tree/dcdc6c49dea4aa962a05f849684b1229ce283d4e/ports/opentui-core"
+        "url": "https://github.com/ohos-npm-ports/ohos-npm-ports/tree/main/ports/o/opentui-core"
       }
     ]
   },
@@ -170,7 +170,7 @@
     "sources": [
       {
         "label": "移植源码与补丁",
-        "url": "https://github.com/ohos-npm-ports/ohos-npm-ports/tree/dcdc6c49dea4aa962a05f849684b1229ce283d4e/ports/oxlint-tsgolint"
+        "url": "https://github.com/ohos-npm-ports/ohos-npm-ports/tree/main/ports/o/oxlint-tsgolint"
       }
     ]
   },
@@ -181,7 +181,7 @@
     "sources": [
       {
         "label": "移植源码与补丁",
-        "url": "https://github.com/ohos-npm-ports/ohos-npm-ports/tree/dcdc6c49dea4aa962a05f849684b1229ce283d4e/ports/parcel-watcher"
+        "url": "https://github.com/ohos-npm-ports/ohos-npm-ports/tree/main/ports/p/parcel-watcher"
       }
     ]
   },
@@ -204,7 +204,7 @@
     "sources": [
       {
         "label": "移植源码与补丁",
-        "url": "https://github.com/ohos-npm-ports/ohos-npm-ports/tree/dcdc6c49dea4aa962a05f849684b1229ce283d4e/ports/playwright-core"
+        "url": "https://github.com/ohos-npm-ports/ohos-npm-ports/tree/main/ports/p/playwright-core"
       }
     ]
   },
@@ -215,7 +215,7 @@
     "sources": [
       {
         "label": "移植源码与补丁",
-        "url": "https://github.com/ohos-npm-ports/ohos-npm-ports/tree/dcdc6c49dea4aa962a05f849684b1229ce283d4e/ports/playwright-mcp"
+        "url": "https://github.com/ohos-npm-ports/ohos-npm-ports/tree/main/ports/p/playwright-mcp"
       }
     ]
   },
@@ -226,7 +226,7 @@
     "sources": [
       {
         "label": "移植源码与补丁",
-        "url": "https://github.com/ohos-npm-ports/ohos-npm-ports/tree/dcdc6c49dea4aa962a05f849684b1229ce283d4e/ports/pnpm"
+        "url": "https://github.com/ohos-npm-ports/ohos-npm-ports/tree/main/ports/p/pnpm"
       }
     ]
   },
@@ -238,7 +238,7 @@
     "sources": [
       {
         "label": "移植源码与补丁",
-        "url": "https://github.com/ohos-npm-ports/ohos-npm-ports/tree/dcdc6c49dea4aa962a05f849684b1229ce283d4e/ports/pnpm"
+        "url": "https://github.com/ohos-npm-ports/ohos-npm-ports/tree/main/ports/p/pnpm"
       }
     ]
   },
@@ -260,7 +260,7 @@
     "sources": [
       {
         "label": "移植源码与补丁",
-        "url": "https://github.com/ohos-npm-ports/ohos-npm-ports/tree/dcdc6c49dea4aa962a05f849684b1229ce283d4e/ports/prisma"
+        "url": "https://github.com/ohos-npm-ports/ohos-npm-ports/tree/main/ports/p/prisma"
       }
     ]
   },
@@ -271,7 +271,7 @@
     "sources": [
       {
         "label": "移植源码与补丁",
-        "url": "https://github.com/ohos-npm-ports/ohos-npm-ports/tree/dcdc6c49dea4aa962a05f849684b1229ce283d4e/ports/prisma-client"
+        "url": "https://github.com/ohos-npm-ports/ohos-npm-ports/tree/main/ports/p/prisma-client"
       }
     ]
   },
@@ -282,13 +282,13 @@
     "sources": [
       {
         "label": "移植源码与补丁",
-        "url": "https://github.com/ohos-npm-ports/ohos-npm-ports/tree/dcdc6c49dea4aa962a05f849684b1229ce283d4e/ports/prisma-engines"
+        "url": "https://github.com/ohos-npm-ports/ohos-npm-ports/tree/main/ports/p/prisma-engines"
       }
     ],
     "notes": [
       {
         "text": "该引擎不是普通业务入口。源码说明需通过 PRISMA_QUERY_ENGINE_LIBRARY 和 PRISMA_SCHEMA_ENGINE_BINARY 指定二进制路径，不能推断为任意 Prisma 版本的透明替换。",
-        "url": "https://github.com/ohos-npm-ports/ohos-npm-ports/tree/dcdc6c49dea4aa962a05f849684b1229ce283d4e/ports/prisma-engines/5.1.1/build.sh"
+        "url": "https://github.com/ohos-npm-ports/ohos-npm-ports/blob/main/ports/p/prisma-engines/NPMBUILD"
       }
     ],
     "installPolicy": "manual"
@@ -300,7 +300,7 @@
     "sources": [
       {
         "label": "移植源码与补丁",
-        "url": "https://github.com/ohos-npm-ports/ohos-npm-ports/tree/dcdc6c49dea4aa962a05f849684b1229ce283d4e/ports/resvg-resvg-js"
+        "url": "https://github.com/ohos-npm-ports/ohos-npm-ports/tree/main/ports/r/resvg-resvg-js"
       }
     ]
   },
@@ -311,7 +311,7 @@
     "sources": [
       {
         "label": "移植源码与补丁",
-        "url": "https://github.com/ohos-npm-ports/ohos-npm-ports/tree/dcdc6c49dea4aa962a05f849684b1229ce283d4e/ports/sharp"
+        "url": "https://github.com/ohos-npm-ports/ohos-npm-ports/tree/main/ports/s/sharp"
       }
     ]
   },
@@ -322,7 +322,7 @@
     "sources": [
       {
         "label": "移植源码与补丁",
-        "url": "https://github.com/ohos-npm-ports/ohos-npm-ports/tree/dcdc6c49dea4aa962a05f849684b1229ce283d4e/ports/sqlite3"
+        "url": "https://github.com/ohos-npm-ports/ohos-npm-ports/tree/main/ports/s/sqlite3"
       }
     ]
   },
@@ -333,7 +333,7 @@
     "sources": [
       {
         "label": "移植源码与补丁",
-        "url": "https://github.com/ohos-npm-ports/ohos-npm-ports/tree/dcdc6c49dea4aa962a05f849684b1229ce283d4e/ports/tailwindcss-oxide"
+        "url": "https://github.com/ohos-npm-ports/ohos-npm-ports/tree/main/ports/t/tailwindcss-oxide"
       }
     ]
   },
@@ -345,7 +345,7 @@
     "sources": [
       {
         "label": "移植源码与补丁",
-        "url": "https://github.com/ohos-npm-ports/ohos-npm-ports/tree/dcdc6c49dea4aa962a05f849684b1229ce283d4e/ports/tailwindcss-oxide"
+        "url": "https://github.com/ohos-npm-ports/ohos-npm-ports/tree/main/ports/t/tailwindcss-oxide"
       }
     ]
   },
@@ -356,7 +356,7 @@
     "sources": [
       {
         "label": "移植源码与补丁",
-        "url": "https://github.com/ohos-npm-ports/ohos-npm-ports/tree/dcdc6c49dea4aa962a05f849684b1229ce283d4e/ports/testcafe"
+        "url": "https://github.com/ohos-npm-ports/ohos-npm-ports/tree/main/ports/t/testcafe"
       }
     ]
   },
@@ -367,7 +367,7 @@
     "sources": [
       {
         "label": "移植源码与补丁",
-        "url": "https://github.com/ohos-npm-ports/ohos-npm-ports/tree/dcdc6c49dea4aa962a05f849684b1229ce283d4e/ports/tsrs"
+        "url": "https://github.com/ohos-npm-ports/ohos-npm-ports/tree/main/ports/t/tsrs"
       }
     ]
   },
@@ -379,7 +379,7 @@
     "sources": [
       {
         "label": "移植源码与补丁",
-        "url": "https://github.com/ohos-npm-ports/ohos-npm-ports/tree/dcdc6c49dea4aa962a05f849684b1229ce283d4e/ports/tsrs"
+        "url": "https://github.com/ohos-npm-ports/ohos-npm-ports/tree/main/ports/t/tsrs"
       }
     ]
   },
@@ -390,7 +390,7 @@
     "sources": [
       {
         "label": "移植源码与补丁",
-        "url": "https://github.com/ohos-npm-ports/ohos-npm-ports/tree/dcdc6c49dea4aa962a05f849684b1229ce283d4e/ports/turbo"
+        "url": "https://github.com/ohos-npm-ports/ohos-npm-ports/tree/main/ports/t/turbo"
       }
     ]
   },
@@ -401,7 +401,7 @@
     "sources": [
       {
         "label": "移植源码与补丁",
-        "url": "https://github.com/ohos-npm-ports/ohos-npm-ports/tree/dcdc6c49dea4aa962a05f849684b1229ce283d4e/ports/typescript"
+        "url": "https://github.com/ohos-npm-ports/ohos-npm-ports/tree/main/ports/t/typescript"
       }
     ]
   },
@@ -412,7 +412,7 @@
     "sources": [
       {
         "label": "移植源码与补丁",
-        "url": "https://github.com/ohos-npm-ports/ohos-npm-ports/tree/dcdc6c49dea4aa962a05f849684b1229ce283d4e/ports/typescript-native-preview"
+        "url": "https://github.com/ohos-npm-ports/ohos-npm-ports/tree/main/ports/t/typescript-native-preview"
       }
     ]
   },
@@ -424,7 +424,7 @@
     "sources": [
       {
         "label": "移植源码与补丁",
-        "url": "https://github.com/ohos-npm-ports/ohos-npm-ports/tree/dcdc6c49dea4aa962a05f849684b1229ce283d4e/ports/typescript-native-preview"
+        "url": "https://github.com/ohos-npm-ports/ohos-npm-ports/tree/main/ports/t/typescript-native-preview"
       }
     ]
   },
@@ -436,7 +436,7 @@
     "sources": [
       {
         "label": "移植源码与补丁",
-        "url": "https://github.com/ohos-npm-ports/ohos-npm-ports/tree/dcdc6c49dea4aa962a05f849684b1229ce283d4e/ports/typescript"
+        "url": "https://github.com/ohos-npm-ports/ohos-npm-ports/tree/main/ports/t/typescript"
       }
     ]
   },
@@ -447,7 +447,7 @@
     "sources": [
       {
         "label": "移植源码与补丁",
-        "url": "https://github.com/ohos-npm-ports/ohos-npm-ports/tree/dcdc6c49dea4aa962a05f849684b1229ce283d4e/ports/vite-plus"
+        "url": "https://github.com/ohos-npm-ports/ohos-npm-ports/tree/main/ports/v/vite-plus"
       }
     ]
   },
@@ -458,7 +458,7 @@
     "sources": [
       {
         "label": "移植源码与补丁",
-        "url": "https://github.com/ohos-npm-ports/ohos-npm-ports/tree/dcdc6c49dea4aa962a05f849684b1229ce283d4e/ports/yuku-codegen"
+        "url": "https://github.com/ohos-npm-ports/ohos-npm-ports/tree/main/ports/y/yuku-codegen"
       }
     ]
   },
@@ -469,7 +469,7 @@
     "sources": [
       {
         "label": "移植源码与补丁",
-        "url": "https://github.com/ohos-npm-ports/ohos-npm-ports/tree/dcdc6c49dea4aa962a05f849684b1229ce283d4e/ports/yuku-parser"
+        "url": "https://github.com/ohos-npm-ports/ohos-npm-ports/tree/main/ports/y/yuku-parser"
       }
     ]
   }
