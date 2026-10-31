@@ -1,57 +1,100 @@
 import { normalizePackage } from "../src/normalize.mjs";
 export { normalizePackage } from "../src/normalize.mjs";
-import { readdir, readFile, mkdir, writeFile } from "node:fs/promises";
+import { readdir, readFile, mkdir, writeFile, stat } from "node:fs/promises";
 import { resolve, dirname, join } from "node:path";
 import { fileURLToPath } from "node:url";
 const root = resolve(dirname(fileURLToPath(import.meta.url)), "..");
 const repository = resolve(root, "..");
 const scope = "@ohos-npm-ports/";
 
+async function readTexts(path, files = []) {
+  for (const entry of await readdir(path, { withFileTypes: true })) {
+    if (entry.isDirectory()) {
+      if (entry.name !== "node_modules") await readTexts(join(path, entry.name), files);
+    } else if (entry.isFile() && (entry.name === "NPMBUILD" || /\.(?:sh|patch|json|js)$/.test(entry.name)))
+      files.push(await readFile(join(path, entry.name), "utf8"));
+  }
+  return files;
+}
+
+async function hasFile(path) {
+  return (await stat(path).catch(() => null))?.isFile() ?? false;
+}
+
+// Current layout is ports/<letter>/<name>/NPMBUILD; the legacy one is ports/<name>/<version>/.
+async function listPortDirectories(portsRoot) {
+  const ports = [];
+  for (const entry of await readdir(portsRoot, { withFileTypes: true })) {
+    if (!entry.isDirectory()) continue;
+    const path = join(portsRoot, entry.name);
+    if (await hasFile(join(path, "NPMBUILD"))) {
+      ports.push({ path, directory: `ports/${entry.name}`, name: entry.name, build: true });
+      continue;
+    }
+    let bucket = false;
+    for (const child of await readdir(path, { withFileTypes: true })) {
+      if (child.isDirectory() && (await hasFile(join(path, child.name, "NPMBUILD")))) {
+        bucket = true;
+        ports.push({
+          path: join(path, child.name),
+          directory: `ports/${entry.name}/${child.name}`,
+          name: child.name,
+          build: true,
+        });
+      }
+    }
+    if (bucket) continue;
+    for (const version of await readdir(path, { withFileTypes: true })) {
+      if (version.isDirectory())
+        ports.push({
+          path: join(path, version.name),
+          directory: `ports/${entry.name}/${version.name}`,
+          name: entry.name,
+          build: false,
+        });
+    }
+  }
+  return ports;
+}
+
 export async function discoverSources(portsRoot) {
   const sources = new Map();
-  for (const port of await readdir(portsRoot, { withFileTypes: true })) {
-    if (!port.isDirectory()) continue;
-    for (const version of await readdir(join(portsRoot, port.name), {
-      withFileTypes: true,
-    })) {
-      if (!version.isDirectory()) continue;
-      const directory = `ports/${port.name}/${version.name}`;
-      const files = [];
-      async function walk(path) {
-        for (const entry of await readdir(path, { withFileTypes: true })) {
-          if (entry.isDirectory() && entry.name === "patchs") await walk(join(path, entry.name));
-          else if (entry.isFile() && /\.(?:sh|patch|json|js)$/.test(entry.name))
-            files.push(await readFile(join(path, entry.name), "utf8"));
-        }
-      }
-      await walk(join(portsRoot, port.name, version.name));
-      const text = files.join("\n");
-      const names = new Set(
-        [`${scope}${port.name}`, ...text.matchAll(/@ohos-npm-ports\/[a-z0-9][a-z0-9._-]*/g)].map(
-          (v) => (typeof v === "string" ? v : v[0]),
-        ),
-      );
-      const original =
+  for (const port of await listPortDirectories(portsRoot)) {
+    const text = (await readTexts(port.path)).join("\n");
+    let portName = port.name;
+    let original;
+    if (port.build) {
+      const build = await readFile(join(port.path, "NPMBUILD"), "utf8");
+      const field = (key) => build.match(new RegExp(`^${key}=["']?([^"'\\s]+)`, "m"))?.[1];
+      portName = field("pkgname") ?? port.name.replace(/@.*$/, "");
+      original = field("upstream");
+    } else {
+      original =
         text.match(/^\/\/ @test-package: (\S+)/m)?.[1] ??
         text.match(/^-\s*"name":\s*"([^"]+)"/m)?.[1];
-      for (const name of names) {
-        const existing = sources.get(name) ?? {
-          directories: [],
-          upstream: null,
-        };
-        existing.directories.push(directory);
-        if (name === `${scope}${port.name}` && original && !original.startsWith(scope))
-          existing.upstream = original;
-        sources.set(name, existing);
-      }
+    }
+    const names = new Set(
+      [`${scope}${portName}`, ...text.matchAll(/@ohos-npm-ports\/[a-z0-9][a-z0-9._-]*/g)].map(
+        (v) => (typeof v === "string" ? v : v[0]),
+      ),
+    );
+    for (const name of names) {
+      const existing = sources.get(name) ?? {
+        directories: [],
+        upstream: null,
+      };
+      existing.directories.push(port.directory);
+      if (name === `${scope}${portName}` && original && !original.startsWith(scope))
+        existing.upstream = original;
+      sources.set(name, existing);
     }
   }
   for (const [name, source] of sources) {
     const primary = name.slice(scope.length);
+    const isPrimary = (directory) =>
+      directory.split("/").slice(1).some((part) => part.replace(/@.*$/, "") === primary);
     source.directories.sort(
-      (a, b) =>
-        Number(b.split("/")[1] === primary) - Number(a.split("/")[1] === primary) ||
-        a.localeCompare(b),
+      (a, b) => Number(isPrimary(b)) - Number(isPrimary(a)) || a.localeCompare(b),
     );
   }
   return sources;
