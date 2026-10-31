@@ -28,6 +28,41 @@ test("source discovery keeps scoped upstream names and platform packages separat
     await rm(root, { recursive: true, force: true });
   }
 });
+test("source discovery reads upstream names from NPMBUILD in the bucketed layout", async () => {
+  const root = await mkdtemp(join(tmpdir(), "catalog-sources-"));
+  try {
+    await mkdir(join(root, "s/sqlite3"), { recursive: true });
+    await writeFile(
+      join(root, "s/sqlite3/NPMBUILD"),
+      '#!/usr/bin/env bash\npkgname="sqlite3"\nupstream="sqlite3"\nversion="5.1.7"\n',
+    );
+    await mkdir(join(root, "d/datadog-pprof"), { recursive: true });
+    await writeFile(
+      join(root, "d/datadog-pprof/NPMBUILD"),
+      'pkgname="datadog-pprof"\nupstream="@datadog/pprof"\n',
+    );
+    await mkdir(join(root, "l/lightningcss@1.32"), { recursive: true });
+    await writeFile(
+      join(root, "l/lightningcss@1.32/NPMBUILD"),
+      'pkgname="lightningcss"\nupstream="lightningcss"\n',
+    );
+    await mkdir(join(root, "l/lightningcss"), { recursive: true });
+    await writeFile(
+      join(root, "l/lightningcss/NPMBUILD"),
+      'pkgname="lightningcss"\nupstream="lightningcss"\n',
+    );
+    const sources = await discoverSources(root);
+    assert.equal(sources.get("@ohos-npm-ports/sqlite3").upstream, "sqlite3");
+    assert.equal(sources.get("@ohos-npm-ports/datadog-pprof").upstream, "@datadog/pprof");
+    assert.deepEqual(sources.get("@ohos-npm-ports/sqlite3").directories, ["ports/s/sqlite3"]);
+    assert.deepEqual(sources.get("@ohos-npm-ports/lightningcss").directories, [
+      "ports/l/lightningcss",
+      "ports/l/lightningcss@1.32",
+    ]);
+  } finally {
+    await rm(root, { recursive: true, force: true });
+  }
+});
 test("data sync emits only confirmed published metadata", async () => {
   const output = await mkdtemp(join(tmpdir(), "catalog-build-"));
   try {
